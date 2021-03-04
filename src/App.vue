@@ -1,15 +1,26 @@
 <template>
   <div id="app">
-    <router-view />
+    <!-- header -->
+    <header-component />
+
+    <!-- content -->
+    <div id="content-wrapper">
+      <router-view />
+    </div>
   </div>
 </template>
 
 <script>
+  import HeaderComponent from "components/common/Header";
+
 export default {
   name: "App",
   data() {
     return {};
   },
+  components: {
+    HeaderComponent,
+  }
 };
 </script>
 
@@ -43,6 +54,15 @@ body {
   min-width: 1200px;
   min-height: 675px;
   position: relative;
+}
+
+#content-wrapper {
+  position: absolute;
+  top: 100px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  border: 1px solid #0af;
 }
 </style>
 

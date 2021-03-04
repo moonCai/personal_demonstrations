@@ -1,9 +1,5 @@
 <template>
-  <div id="camera-icon-wrapper">
-    <!-- header start -->
-    <header-component secondaryTitle="摄像头图标"></header-component>
-
-    <div class="" id="content"></div>
+  <div id="camera-icons">
   </div>
 </template>
 
@@ -19,17 +15,8 @@
 </script>
 
 <style scoped>
-  #camera-icon-wrapper {
+  #camera-icons {
     width: 100%;
     height: 100%;
-  }
-
-  #content {
-      position: absolute;
-      top: 100px;
-      left: 20px;
-      right: 20px;
-      bottom: 20px;
-      border: 1px solid #E43960;
   }
 </style>

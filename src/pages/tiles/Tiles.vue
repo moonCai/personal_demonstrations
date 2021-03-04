@@ -1,11 +1,5 @@
 <template>
-  <div id="multiple-videos">
-    <!-- header -->
-    <header-component secondaryTitle="倾斜摄影"></header-component>
-
-    <!-- 地图 -->
-    <div class id="mutiple-cesium"></div>
-  </div>
+  <div class id="mutiple-cesium"></div>
 </template>
 
 <script>
@@ -26,7 +20,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium("mutiple-cesium", "google", true);
+        this.mapViewer = defaultInitCesium("mutiple-cesium", "tiandiTu", true);
 
         this.videoProjectionTest();
 
@@ -106,23 +100,10 @@
 </script>
 
 <style scoped lang="scss">
-  #multiple-videos {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgb(7, 17, 43);
-  }
-
   #mutiple-cesium {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+    width: 100%;
+    height: 100%;
     background: rgba(3, 195, 255, 0.1);
-    border: 1px solid rgb(60, 117, 219);
     overflow: hidden;
   }
 
@@ -134,5 +115,4 @@
     bottom: 0;
     z-index: 100;
   }
-
 </style>

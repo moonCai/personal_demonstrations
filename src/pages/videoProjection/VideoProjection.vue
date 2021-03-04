@@ -1,32 +1,16 @@
 <template>
-  <div id="video-projection-wrapper">
-    <!-- header -->
-    <header-component secondaryTitle="视频配准"></header-component>
-
-    <div id="video-cesium"></div>
-  </div>
+  <div id="video-cesium"></div>
 </template>
 
 <script>
-  import HeaderComponent from "components/common/Header";
-
-  import {
-    defaultInitCesium
-  } from "assets/js/cesium/mapInit";
-  import {
-    locationMixin
-  } from "assets/js/mixin/mixin";
+  import { defaultInitCesium } from "assets/js/cesium/mapInit";
+  import { locationMixin } from "assets/js/mixin/mixin";
 
   export default {
     data() {
-      return {
-
-      };
+      return {};
     },
     mixins: [locationMixin],
-    components: {
-      HeaderComponent,
-    },
     mounted() {
       this.initScene();
     },
@@ -35,7 +19,8 @@
       initScene() {
         this.mapViewer = defaultInitCesium("video-cesium", "google", true);
 
-        let cameraInfos = [{
+        let cameraInfos = [
+          {
             url: "../../static/videos/fz_01.mp4",
             height: 0,
             rotate: 0,
@@ -56,16 +41,34 @@
             url: "../../static/videos/fz_02.mp4",
             height: 0.4,
             rotate: 180,
-            rect: [112.85213569976844, 32.197190483562935, 112.84286576750961, 32.2175196295174, 112.8591768335147,
-              32.2205860081912, 112.86394689082967, 32.21437102986036, 112.85213569976844, 32.197190483562935
+            rect: [
+              112.85213569976844,
+              32.197190483562935,
+              112.84286576750961,
+              32.2175196295174,
+              112.8591768335147,
+              32.2205860081912,
+              112.86394689082967,
+              32.21437102986036,
+              112.85213569976844,
+              32.197190483562935,
             ],
           },
           {
             url: "../../static/videos/fz_03.mp4",
             height: 0.2,
             rotate: 0,
-            rect: [112.89346167292162, 32.18943146681602, 112.85669646519236, 32.19825237269494, 112.85855478802513,
-              32.21384380104021, 112.86780036427353, 32.21602834307125, 112.89346167292162, 32.18943146681602
+            rect: [
+              112.89346167292162,
+              32.18943146681602,
+              112.85669646519236,
+              32.19825237269494,
+              112.85855478802513,
+              32.21384380104021,
+              112.86780036427353,
+              32.21602834307125,
+              112.89346167292162,
+              32.18943146681602,
             ],
           },
           {
@@ -119,35 +122,21 @@
 
         this.mapViewer.zoomTo(this.mapViewer.entities);
       },
-
     },
   };
-
 </script>
 
 <style scoped lang="scss">
-  #video-projection-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
   #video-cesium {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+    width: 100%;
+    height: 100%;
   }
 
-  #video-cesium>>>video {
+  #video-cesium >>> video {
     width: 320px;
     height: 180px;
     position: absolute;
     right: 0;
     bottom: 0;
   }
-
 </style>

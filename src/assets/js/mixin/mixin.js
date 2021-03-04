@@ -1,5 +1,3 @@
-import HeaderComponent from "components/common/Header";
-
 export const locationMixin = {
   data() {
     return {
@@ -11,9 +9,6 @@ export const locationMixin = {
         31.38353006245101
       ]
     }
-  },
-  components: {
-    HeaderComponent
   },
   destoyed() {
     this.mapViewer && this.mapViewer.destoy();

@@ -1,16 +1,10 @@
 <template>
-  <div class="query-wrapper">
-    <!-- header -->
-    <header-component secondaryTitle="网格查询"></header-component>
+  <div id="query-cesium">
+    <!-- 显示/隐藏网格 -->
+    <input type="button" class="fine-grids" value="显示/隐藏网格" @click="showOrHiddenGrids">
 
-    <div class="" id="query-cesium">
-      <!-- 显示/隐藏网格 -->
-      <input type="button" class="fine-grids" value="显示/隐藏网格" @click="showOrHiddenGrids">
-
-      <!-- 单网格/多变形/路径查询 -->
-      <select-grids />
-    </div>
-
+    <!-- 单网格/多变形/路径查询 -->
+    <select-grids />
   </div>
 </template>
 
@@ -59,14 +53,11 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium('query-cesium', 'google', true);
+        this.mapViewer = defaultInitCesium('query-cesium', 'tiandiTu', true);
 
         this.mapViewer.camera.setView({
           destination: Cesium.Rectangle.fromDegrees(
-            this.hubeiGeoRect[0],
-            this.hubeiGeoRect[1],
-            this.hubeiGeoRect[2],
-            this.hubeiGeoRect[3]
+            ...this.hubeiGeoRect
           ),
         });
 
@@ -145,21 +136,9 @@
 </script>
 
 <style scoped>
-  .query-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgb(7, 17, 43);
-  }
-
   #query-cesium {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+   width: 100%;
+   height: 100%;
   }
 
   .fine-grids {

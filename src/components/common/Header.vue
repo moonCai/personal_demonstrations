@@ -1,12 +1,12 @@
 <template>
   <div class="header-wrapper">
     <div id="header">PERSONAL DEMONSTRATION</div>
-    <div class="breadcrumb" v-if="secondaryTitle">
+    <div class="breadcrumb" v-if="$route.meta.title">
       <img src="~assets/images/common/home.png" />
 
       <router-link to="/">首页</router-link>
       <strong>></strong>
-      <span>{{ secondaryTitle }}</span>
+      <span>{{ $route.meta.title }}</span>
     </div>
   </div>
 </template>
@@ -16,7 +16,6 @@ export default {
   data() {
     return {};
   },
-  props: ["secondaryTitle"],
 };
 </script>
 

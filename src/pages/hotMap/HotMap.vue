@@ -1,10 +1,5 @@
 <template>
-  <div class="hot-map-wrapper">
-    <!-- header start -->
-    <header-component secondaryTitle="时间轴 + 热力图"></header-component>
-
-    <div id="hot-cesium"></div>
-
+  <div id="hot-cesium">
     <!-- 日期选择器 -->
     <time-line />
   </div>
@@ -14,8 +9,8 @@
   import TimeLine from "components/utilities/timeLine/TimeLine";
 
   import {
-  defaultInitCesium
-} from "assets/js/cesium/mapInit";
+    defaultInitCesium
+  } from "assets/js/cesium/mapInit";
   import heatData from "assets/js/data/data";
   import {
     drawHeatMap
@@ -36,7 +31,6 @@
       TimeLine,
     },
     mixins: [locationMixin],
-    created() {},
     mounted() {
       this.initScene();
 
@@ -44,7 +38,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium("hot-cesium", "google", true);
+        this.mapViewer = defaultInitCesium("hot-cesium", "tiandiTu", true);
 
         this.drawHeatMap();
       },
@@ -88,18 +82,8 @@
 </script>
 
 <style lang="scss" scoped>
-  .hot-map-wrapper {
-    width: 100%;
-    height: 100%;
-  }
-
   #hot-cesium {
-    position: absolute;
-    top: 90px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    border: 1px solid rgba(1, 115, 166, 1);
+   width: 100%;
+   height: 100%;
   }
-
 </style>

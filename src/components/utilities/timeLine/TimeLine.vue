@@ -347,7 +347,7 @@
     height: 90px;
     position: absolute;
     left: 50%;
-    top: 120px;
+    top: 20px;
     transform: translateX(-50%);
     border-radius: 10px;
     z-index: 999;
