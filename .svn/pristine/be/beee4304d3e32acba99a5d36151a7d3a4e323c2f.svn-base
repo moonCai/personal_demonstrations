@@ -1,0 +1,230 @@
+<template>
+  <div class id="hot-cesium">
+    <!-- 日期选择器 -->
+    <div id="time-picker-bar">
+      <el-date-picker
+        v-if="isDisplay"
+        v-model="timeArr"
+        type="datetimerange"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        :picker-options="pickerOptions"
+      ></el-date-picker>
+
+      <div
+        :class="isDisplay ? 'display' : ''"
+        id="display-bar"
+        @click="scaleTimePicker"
+      ></div>
+    </div>
+
+    <!-- 图例 -->
+    <div class="" id="lengend">
+      <div class="" id="top-trangle"></div>
+      <div class="" id="bottom-trangle"></div>
+      <div class="" id="max">{{ maxCount }}</div>
+      <div class="" id="min">{{ minCount }}</div>
+      <div class="" id="color-bar"></div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { defaultInitCesium } from "assets/js/MapInit";
+import { server } from "request/api";
+import { GMTToStr } from "assets/js/Time";
+import { mapMoveEnd } from "assets/js/MapEvent";
+
+export default {
+  data() {
+    return {
+      hotMapViewer: null,
+      isDisplay: true,
+      maxCount: 1000,
+      minCount: 0,
+      visibleRect: [
+        108.01922660493709,
+        28.667823490628802,
+        116.89680191542806,
+        33.364601344926555,
+      ],
+      timeArr: "",
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+    };
+  },
+  created() {},
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 场景初始化
+    initScene() {
+      this.hotMapViewer = defaultInitCesium("hot-cesium", "tianDitu", false);
+
+      this.hotMapViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          this.visibleRect[0],
+          this.visibleRect[1],
+          this.visibleRect[2],
+          this.visibleRect[3]
+        ),
+      });
+
+      this.hotMapViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("../../../static/hubei.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0.4),
+          strokeWidth: 3,
+        })
+      );
+
+      mapMoveEnd(this.hotMapViewer);
+    },
+
+    // 展开-收起日期选择器
+    scaleTimePicker() {
+      this.isDisplay = !this.isDisplay;
+
+      let widthStr = this.isDisplay ? "532px" : "25px";
+      $("#time-picker-bar").css({ width: widthStr });
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.hotMapViewer && this.hotMapViewer.destroy();
+  },
+};
+</script>
+
+<style scoped lang="scss">
+#hot-cesium {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(1, 115, 166, 1);
+
+  #time-picker-bar {
+    width: 532px;
+    height: 60px;
+    background: #000;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 999;
+    border: 1px solid #00c2ff;
+    border-radius: 4px;
+    box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+  }
+
+  #display-bar {
+    width: 25px;
+    height: 60px;
+    background: url(~assets/images/hotMap/hide.png) center / cover;
+    position: absolute;
+    top: -1px;
+    right: 0;
+    cursor: pointer;
+
+    &.display {
+      background: url(~assets/images/hotMap/display.png) center / cover;
+    }
+  }
+
+  #lengend {
+    width: 90px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #999;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 99;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+
+    #color-bar {
+      width: 20px;
+      height: 80px;
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      background: linear-gradient(
+        rgb(255, 0, 0),
+        rgb(255, 255, 0),
+        rgb(0, 255, 0),
+        rgb(0, 0, 255)
+      );
+    }
+
+    #top-trangle,
+    #bottom-trangle {
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      left: 30px;
+    }
+
+    #top-trangle {
+      background: url("~assets/images/hotMap/red_trangle.png") center / cover;
+      top: 10px;
+    }
+
+    #bottom-trangle {
+      background: url("~assets/images/hotMap/blue_trangle.png") center / cover;
+      bottom: 10px;
+    }
+
+    #max,
+    #min {
+      color: #111;
+      font-size: 14px;
+      position: absolute;
+      left: 45px;
+    }
+
+    #max {
+      top: 5px;
+    }
+
+    #min {
+      bottom: 5px;
+    }
+  }
+}
+</style>
+
+<style>
+.el-range-editor--small.el-input__inner {
+  width: 465px;
+  height: 36px;
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+.el-range-editor--small .el-range__close-icon,
+.el-range-editor--small .el-range__icon {
+  line-height: 28px;
+}
+.el-range-editor--small .el-range-separator {
+  line-height: 28px;
+}
+.el-range-editor--small .el-range-input {
+  font-size: 14px;
+}
+</style>
+
+

@@ -1,0 +1,69 @@
+.header {
+  width: 100%;
+  height: 60px;
+  position: relative;
+  z-index: 9999;
+}
+
+/* 左侧导航栏 */
+.left-header {
+  width: 600px;
+  height: 100%;
+  line-height: 60px;
+  background: url("../images/homePage/left-header.png");
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: left;
+}
+
+.left-header img {
+  margin-left: 30px;
+  margin-right: 10px;
+  vertical-align: sub;
+}
+
+.left-header span {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* 右侧导航栏 */
+.right-header {
+  position: absolute;
+  left: 580px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: url("../images/homePage/right-header.png");
+}
+
+/* 目录树 */
+.home {
+  width: 60px;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  right: 20px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.home img {
+  width: 26px;
+  height: 26px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.home span {
+  font-size: 14px;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  cursor: pointer;
+}

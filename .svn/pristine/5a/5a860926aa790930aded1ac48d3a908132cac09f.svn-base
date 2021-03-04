@@ -1,0 +1,118 @@
+<template>
+  <div class="container">
+    <!-- 标题栏 -->
+    <div class="title">
+      结果列表
+      <span class="user-id">用户ID: {{ userID }}</span>
+      <span class="close-list" @click="closeResultListEvent"></span>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table">
+      <el-table :data="list" height="100%">
+        <el-table-column prop="geo_num" label="点位编码"></el-table-column>
+        <el-table-column prop="track_time" label="时间"></el-table-column>
+        <el-table-column label="操作" width="100">
+          <template slot-scope="scope">
+            <el-button @click="handleClick(scope.row)" type="text" size="small"
+              >查看</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      list: [],
+      userID: "",
+      tableHeight: "100%",
+    };
+  },
+  props: ["data"],
+  watch: {
+    data(newVal, oldVal) {
+      this.handleData(newVal);
+    },
+  },
+  created() {
+    this.handleData(this.data);
+  },
+  methods: {
+    handleClick(row) {
+      console.log(row);
+      this.$emit('reviewGrid', row);
+    },
+
+    handleData(newVal) {
+      let hasKey = Object.keys(newVal).length != 0;
+      this.userID = hasKey ? newVal.track_id : "";
+      this.list = hasKey ? newVal.list : [];
+    },
+
+    closeResultListEvent() {
+      this.$emit("displayResult", false);
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+.container {
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 24, 35, 1);
+  border: 1px solid rgba(3, 195, 255, 0.5);
+  border-radius: 6px;
+
+  .title {
+    height: 40px;
+    line-height: 40px;
+    font-family: PingFangSC-Semibold;
+    font-size: 14px;
+    color: #ffffff;
+    letter-spacing: 0;
+    border-bottom: 1px solid #008ec0;
+    text-align: left;
+    padding-left: 10px;
+    position: relative;
+
+    .user-id {
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      color: #63d9ff;
+      margin-left: 40px;
+    }
+
+    .close-list {
+      width: 15px;
+      height: 15px;
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: url(~assets/images/common/close_15.png) center / cover
+        no-repeat;
+    }
+  }
+
+  .table {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  >>> .el-table {
+    left: 10px;
+    width: 300px;
+    background: transparent;
+  }
+}
+</style>

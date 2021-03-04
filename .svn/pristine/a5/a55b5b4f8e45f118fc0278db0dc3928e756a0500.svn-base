@@ -1,0 +1,9 @@
+// 阻止事件冒泡
+export function preventEventBubble(evt) {
+    var e = (evt) ? evt : window.event;
+    if (evt) {
+        e.stopPropagation(); // 其它浏览器下阻止冒泡
+      } else {
+        e.cancelBubble = true; // ie下阻止冒泡
+      }
+}

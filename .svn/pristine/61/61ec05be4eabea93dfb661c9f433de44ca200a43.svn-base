@@ -1,0 +1,240 @@
+<template>
+  <div class id="detail-container">
+    <div class="bar">
+      <span class="track_id">待筛查人员：{{ trackId }}</span>
+      <span id="close-detail" @click="closeEvent"></span>
+    </div>
+
+    <div class="table-container">
+      <el-table :data="tableData" height="166" border style="width: 330px">
+        <el-table-column type="index" label="序号" width="60"></el-table-column>
+        <el-table-column prop="date2" label="时刻"></el-table-column>
+        <el-table-column label="操作" width="80">
+          <template slot-scope="scope">
+            <el-button @click="handleClick(scope.row)" type="text" size="small">定位</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      // 轨迹id
+      trackId: "",
+      // 列表数据
+      tableData: [],
+    };
+  },
+  props: ["list"],
+  watch: {
+    list(newVal, oldVal) {
+      this.handleData();
+    },
+  },
+  created() {
+    this.handleData();
+  },
+  methods: {
+    //   定位
+    handleClick(row) {
+      this.$emit("locationGrid", row);
+    },
+
+    //   关闭窗口
+    closeEvent() {
+      this.$emit("displayDetail", false);
+    },
+
+    //  处理数据
+    handleData() {
+      this.trackId = this.list.by_track_list[0].track_id;
+
+      let arr = [];
+      for (let i = 0; i < this.list.by_track_list.length; i++) {
+        let temp = {};
+        temp.floorHeight_A = this.list.track_list[i].floor_height;
+        temp.GeoNum_A = this.list.track_list[i].geo_num;
+        temp.date1 = this.list.track_list[i].track_time;
+        temp.track_A = this.list.track_list[i].track_id;
+        temp.boundary_A = this.list.track_list[i].boundary;
+
+        temp.floorHeight_B = this.list.track_list[i].floor_height;
+        temp.GeoNum_B = this.list.by_track_list[i].geo_num;
+        temp.date2 = this.list.by_track_list[i].track_time;
+        temp.track_B = this.list.by_track_list[i].track_id;
+        temp.boundary_B = this.list.by_track_list[i].boundary;
+        arr.push(temp);
+      }
+      this.tableData = arr;
+    },
+  },
+};
+</script>>
+
+<style scoped>
+#detail-container {
+  width: 360px;
+  height: 250px;
+  position: absolute;
+  top: 270px;
+  right: 10px;
+  z-index: 10000;
+  background: rgba(4, 24, 35, 1);
+  border: rgba(0, 142, 192, 1);
+}
+#detail-container .bar {
+  height: 46px;
+  line-height: 46px;
+  border-bottom: 1px solid rgba(3, 195, 255, 0.5);
+}
+#detail-container .bar .track_id,
+#detail-container .bar .ratio {
+  float: left;
+  padding-left: 15px;
+  font-size: 15px;
+  color: #63d9ff;
+}
+#detail-container .bar #close-detail {
+  width: 15px;
+  height: 15px;
+  background: url("../../../assets/images/common/close_15.png") no-repeat center /
+    cover;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+#detail-container .table-container {
+  height: 160px;
+  padding-left: 16px;
+  padding-top: 20px;
+}
+
+/* 相遇点列表 */
+#detail-container >>> .el-table th > .cell,
+#detail-container >>> .el-table .cell {
+  text-align: center;
+}
+#detail-container >>> .el-table__fixed-right::before,
+#detail-container >>> .el-table__fixed::before {
+  background-color: transparent;
+}
+#detail-container >>> .el-table__body,
+#detail-container >>> .el-table__footer,
+#detail-container >>> .el-table__header {
+  border-left: 1px solid #0ab8f2;
+}
+
+#detail-container >>> .el-table thead,
+#detail-container >>> .el-table__body {
+  position: relative;
+}
+#detail-container >>> .el-table thead::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#detail-container >>> .el-table__body::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 1px;
+}
+
+#detail-container >>> .el-table__body tr.hover-row > td {
+  background-color: rgb(4, 20, 39);
+}
+#detail-container >>> .el-table__body-wrapper {
+  background: rgb(4, 20, 39);
+  scrollbar-width: none;
+}
+
+#detail-container >>> .el-table th {
+  background: -webkit-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Safari 5.1 - 6.0 */
+  background: -o-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Opera 11.1 - 12.0 */
+  background: -moz-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Firefox 3.6 - 15 */
+  background: linear-gradient(#439bbb, rgb(4, 20, 39)); /* 标准的语法 */
+}
+#detail-container >>> .el-table tr {
+  background: rgba(4, 20, 39, 1);
+}
+
+#detail-container
+  >>> .el-table--enable-row-hover
+  .el-table__body
+  tr:hover
+  > td {
+  background: rgba(4, 20, 39, 1);
+}
+
+#detail-container >>> .el-table thead {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+#detail-container >>> .el-button--text {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 350;
+  padding: 5px 10px;
+  background: rgba(10, 73, 107, 1);
+  border: 1px solid #0ab8f2;
+}
+#detail-container >>> .el-table--fit {
+  border-left: none;
+  border-right: none;
+}
+#detail-container >>> .el-table td,
+#detail-container >>> .el-table th.is-leaf {
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#detail-container >>> .el-table::before {
+  background: transparent;
+}
+#detail-container >>> .el-table {
+  color: #fff;
+  font-weight: 350;
+  font-size: 13px;
+  background: rgba(4, 20, 39, 1);
+}
+#detail-container >>> .el-table__empty-block {
+  background: rgba(4, 20, 39, 1);
+  border-left: 1px solid #0ab8f2;
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#detail-container >>> .el-table--border,
+#detail-container >>> .el-table--group {
+  border: none;
+}
+#detail-container >>> .el-table--border::after,
+#detail-container >>> .el-table--group::after {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: transparent;
+}
+</style>

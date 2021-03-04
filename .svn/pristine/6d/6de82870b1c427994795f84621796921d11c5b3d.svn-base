@@ -1,0 +1,121 @@
+<template>
+  <div id="home-page-container">
+    <!-- header start -->
+    <div class="header">
+      <div class="left-header">
+        <img src="../assets/images/homePage/logo.png" />
+        <span>智慧园区视频网格编码应用原型系统</span>
+      </div>
+
+      <div class="right-header"></div>
+    </div>
+    <!-- header end -->
+
+    <!-- 内容区  start -->
+    <div class="content">
+      <!-- 图片区域 -->
+      <div class="bg"></div>
+
+      <!-- 场景 -->
+      <div class="scene-container">
+        <div class="scene2">
+          <div class="title">园区疫情防控</div>
+          <div class="item" @click="goChildrenModule('buildTrack')">人员轨迹查询</div>
+          <div class="item" @click="goChildrenModule('parterAnalysis')">同行人分析</div>
+          <div class="item" @click="goChildrenModule('closeContact')">可能的密切接触人员筛选</div>
+        </div>
+      </div>
+    </div>
+    <!-- 内容区  end -->
+  </div>
+</template>
+
+<script>
+export default {
+  name: "HomePage",
+  data() {
+    return {};
+  },
+  methods: {
+    // 跳转子模块
+    goChildrenModule(route) {
+      this.$router.push(route);
+    }
+  },
+  destroyed() {}
+};
+</script>
+
+<style scoped>
+#home-page-container .content {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(3, 195, 255, 0.7);
+}
+
+.content .bg {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 300px;
+  bottom: 10px;
+  box-shadow: 0 0 5px 5px rgba(3, 195, 255, 0.7);
+  background: url("../assets/images/homePage/bg.png") no-repeat center / cover;
+}
+
+/*  场景 */
+.content .scene-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  width: 270px;
+  border: 1px solid rgba(3, 195, 255, 0.7);
+}
+.scene-container .title {
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(3, 195, 255, 0.7);
+  background-image: linear-gradient(
+    -179deg,
+    rgba(3, 195, 255, 0.4) 0%,
+    rgba(66, 127, 239, 0) 100%
+  );
+}
+.scene-container .item {
+  width: 186px;
+  height: 30px;
+  line-height: 30px;
+  color: #fff;
+  font-size: 14px;
+  border: 1px solid rgba(3, 195, 255, 1);
+  background: rgba(6, 50, 74, 1);
+  margin-left: 42px;
+  margin-top: 30px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/*  场景一导航 */
+.scene-container .scene1 {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/*  场景二导航 */
+.scene-container .scene2 {
+  width: 270px;
+  position: absolute;
+  top: 410px;
+  right: 0;
+  border-top: 1px solid rgba(3, 195, 255, 0.7);
+}
+</style>

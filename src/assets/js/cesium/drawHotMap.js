@@ -1,0 +1,90 @@
+/**
+ * 绘制网格热力
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * @param maxHotCount 最大的网格热值
+ * */
+export function drawGridsOfHotMap(grids, grids_primitives, maxHotCount) {
+
+  let instanceGeometries = [];
+  let lineGeometries = [];
+
+  grids.forEach(gridData => {
+    let bound = gridData.boundary;
+    // 绘制网格
+    let rectangle = new Cesium.RectangleGeometry({
+      rectangle: Cesium.Rectangle.fromDegrees(bound[0], bound[1], bound[2], bound[3]),
+    });
+    let fillColor = getGridColor(gridData.count, maxHotCount, 'fill');
+    let instanceGeometry = new Cesium.GeometryInstance({
+      geometry: rectangle,
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(fillColor)
+      }
+    });
+    instanceGeometries.push(instanceGeometry);
+
+    // 绘制网格边线
+    let outline = new Cesium.RectangleOutlineGeometry({
+      rectangle: Cesium.Rectangle.fromDegrees(bound[0], bound[1], bound[2], bound[3]),
+    });
+    let lineColor = getGridColor(gridData.count, maxHotCount, 'line');
+    let lineGeometry = new Cesium.GeometryInstance({
+      geometry: outline,
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(lineColor)
+      }
+    });
+    lineGeometries.push(lineGeometry);
+  })
+
+  grids_primitives.add(
+    new Cesium.Primitive({
+      geometryInstances: instanceGeometries,
+      appearance: new Cesium.PerInstanceColorAppearance({
+        flat: true
+      }),
+      asynchronous: false
+    })
+  );
+
+  grids_primitives.add(
+    new Cesium.Primitive({
+      geometryInstances: lineGeometries,
+      appearance: new Cesium.PerInstanceColorAppearance({
+        flat: true
+      }),
+      asynchronous: false
+    })
+  );
+
+}
+
+function getGridColor(count, maxHotCount, type) {
+
+  if (maxHotCount == 0) {
+    return Cesium.Color.RED
+  }
+
+  let isBorder = type == 'line';
+  let ratio = parseFloat(count / maxHotCount.toFixed(2) + 0.45);
+
+  // #E1EBF4 #FDE8B3 #FECE9E #FFA579 #FE6442 #FD2834 #DD2005
+
+  if (count == 0) {
+    return Cesium.Color.BLUE.withAlpha(0);
+  } else if (count < maxHotCount * 0.3) {
+    let alpha = isBorder ? 0.1 : ratio;
+    return Cesium.Color.fromCssColorString('#E1EBF4').withAlpha(alpha);
+  } else if (count < maxHotCount * 0.6) {
+    let alpha = isBorder ? 0.3 : (ratio - 0.25) / 2;
+    return Cesium.Color.fromCssColorString('#FECE9E').withAlpha(alpha);
+  } else if (count < maxHotCount * 0.8) {
+    let alpha = isBorder ? 0.3 : (ratio - 0.5);
+    return Cesium.Color.fromCssColorString('#FE6442').withAlpha(alpha) ;
+  } else {
+    let alpha = isBorder ? 1 : (ratio - 0.65);
+    return Cesium.Color.fromCssColorString('#DD2005').withAlpha(alpha + 0.2);
+  }
+
+}

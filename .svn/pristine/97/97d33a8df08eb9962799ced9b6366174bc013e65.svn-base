@@ -1,0 +1,96 @@
+/**
+ * 绘制实心轨迹网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function addFillTrackGrids(grids, grids_primitives, cesiumColor) {
+
+  let linesGeometries = grids.map(grid => {
+    let rectangle = new Cesium.RectangleGeometry({
+      rectangle: Cesium.Rectangle.fromDegrees(grid.boundary[0], grid.boundary[1], grid.boundary[2], grid.boundary[3]),
+      height: 10
+      //grid.height
+    });
+
+    let instanceGeometry = new Cesium.GeometryInstance({
+      geometry: rectangle,
+      id: grid.geo_num,
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+          cesiumColor
+        )
+      }
+    });
+    return instanceGeometry
+  })
+
+
+  grids_primitives.add(
+    new Cesium.Primitive({
+      geometryInstances: linesGeometries,
+      appearance: new Cesium.PerInstanceColorAppearance({
+        flat: true
+      }),
+      asynchronous: false
+    })
+  );
+}
+
+/**
+ * 绘制二维网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function add2dFillAndBorderGrids(grids, grids_primitives, fillColor, borderColor) {
+
+  let instanceGeometries = [];
+  let linesGeometries = [];
+
+  grids.forEach(grid => {
+      let height = grid.height ? grid.height : 0;
+
+    let rectangle = new Cesium.RectangleGeometry({
+      rectangle: Cesium.Rectangle.fromDegrees(grid.boundary[0], grid.boundary[1], grid.boundary[2], grid.boundary[3]),
+      height: 0
+    });
+    let instanceGeometry = new Cesium.GeometryInstance({
+      geometry: rectangle,
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(fillColor),
+      }
+    });
+    instanceGeometries.push(instanceGeometry);
+
+    let rectangleLine = new Cesium.RectangleOutlineGeometry({
+      rectangle: Cesium.Rectangle.fromDegrees(grid.boundary[0], grid.boundary[1], grid.boundary[2], grid.boundary[3]),
+      height: 0
+    });
+    let instanceLineGeometry = new Cesium.GeometryInstance({
+      geometry: rectangleLine,
+      attributes: {
+        color: Cesium.ColorGeometryInstanceAttribute.fromColor(borderColor)
+      }
+    });
+    linesGeometries.push(instanceLineGeometry);
+  })
+
+  grids_primitives.add(
+    new Cesium.Primitive({
+      geometryInstances: instanceGeometries,
+      appearance: new Cesium.PerInstanceColorAppearance({
+        flat: true
+      }),
+      asynchronous: false
+    })
+  );
+
+  grids_primitives.add(
+    new Cesium.Primitive({
+      geometryInstances: linesGeometries,
+      appearance: new Cesium.PerInstanceColorAppearance({
+        flat: true
+      }),
+      asynchronous: false
+    })
+  );
+}

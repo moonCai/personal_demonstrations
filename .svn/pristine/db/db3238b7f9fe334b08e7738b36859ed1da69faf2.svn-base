@@ -1,0 +1,36 @@
+/**
+ * 配置编译环境和线上环境之间的切换
+ * baseUrl: 域名地址
+ */
+
+// 基础服务
+let baseUrl = '';
+
+// wms底图
+let wmsUrl = 'http://geoserver.iwhere.com/geoserver/global/wms?service=WMS';
+
+
+let offlineUrl;
+
+if (process.env.NODE_ENV == 'development') {
+  baseUrl = 'http://10.68.1.13:8097/hubei-trace-performance';
+  offlineUrl = "http://geoserver.iwhere.com/hubeishengimg/{z}/{x}/{y}.png";
+} else if (process.env.NODE_ENV == 'production') {
+  // 12-16部署
+  baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+  offlineUrl = "http://10.25.176.204:8088/hubeisheng/{z}/{x}/{y}.png";
+} else if (process.env.NODE_ENV == 'testing') {
+ // 12-16部署
+ baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+ offlineUrl = "http://10.25.176.204:8088/hubeisheng/{z}/{x}/{y}.png";
+} else if (process.env.NODE_ENV == 'qaing') {
+ // 12-16部署
+ baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+ offlineUrl = "http://10.25.176.204:8088/hubeisheng/{z}/{x}/{y}.png";
+}
+
+export {
+  baseUrl,
+  wmsUrl,
+  offlineUrl
+}

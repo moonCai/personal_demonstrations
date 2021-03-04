@@ -1,0 +1,37 @@
+
+// 将时间戳转化为时间字符串
+export function timeStampToTimeString(timeStamp) {
+    const Y = timeStamp.getFullYear()
+    const M = (timeStamp.getMonth() + 1).toString().padStart(2, '0')
+    const D = timeStamp.getDate().toString().padStart(2, '0')
+    const h = timeStamp.getHours().toString().padStart(2, '0')
+    const m = timeStamp.getMinutes().toString().padStart(2, '0')
+    const s = timeStamp.getSeconds().toString().padStart(2, '0')
+    
+    return `${Y}-${M}-${D} ${h}:${m}:${s}`
+}
+
+export function GMTToStr(time) {
+    let date = new Date(time)
+    var Y = date.getFullYear();
+    var M = date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1);
+    var D = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
+    var h = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+    var m = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+    var s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+
+    return `${Y}-${M}-${D} ${h}:${m}:${s}`
+}
+
+// 将秒转化成“10：20：30”形式
+export function secondsToHMS_string(seconds) {
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor(seconds % 3600 / 60);
+    let s = Math.floor(seconds % 60);
+
+    h = h > 9 ? h : ('0' + h);
+    m = m > 9 ? m : ('0' + m);
+    s = s > 9 ? s : ('0' + s);
+
+    return `${h}:${m}:${s}`
+}

@@ -1,0 +1,121 @@
+<template>
+  <div class="contact-list-container">
+    <div class="title">
+      密切接触者列表
+      <span class="user-id">确诊人员：{{ diagnosisId }}</span>
+      <span class="close-list" @click="closeEvent"></span>
+    </div>
+
+    <!-- 表格 -->
+    <div class="table">
+      <el-table :data="list" height="100%">
+        <el-table-column type="index" label="序号" width="50"></el-table-column>
+        <el-table-column prop="personId" label="密接人员ID"></el-table-column>
+        <el-table-column label="操作" width="100">
+          <template slot-scope="scope">
+            <el-button @click="handleClick(scope.row)" type="text" size="small"
+              >查看详情</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      list: [],
+      diagnosisId: "",
+    };
+  },
+  props: ["data"],
+  watch: {
+    data(newVal, oldVal) {
+      this.handleData(newVal);
+    },
+  },
+  created() {
+    this.handleData(this.data);
+  },
+  methods: {
+    // 处理数据
+    handleData(data) {
+      this.diagnosisId = data.diagnosis_track_id;
+      this.list = data.contract_list.map((id) => {
+        return {
+          personId: id,
+        };
+      });
+    },
+
+    // 关闭窗口
+    closeEvent() {
+      this.$emit("displayContact", false);
+    },
+
+    // 查看详情
+    handleClick(row) {
+      this.$emit("detailId", row.personId);
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+.contact-list-container {
+  width: 100%;
+  height: 100%;
+  background: rgba(4, 24, 35, 1);
+  border: 1px solid #008ec0;
+  border-radius: 3px;
+
+  .title {
+    height: 40px;
+    line-height: 40px;
+    font-family: PingFangSC-Semibold;
+    font-size: 14px;
+    color: #ffffff;
+    letter-spacing: 0;
+    border-bottom: 1px solid #008ec0;
+    text-align: left;
+    padding-left: 10px;
+    position: relative;
+
+    .user-id {
+      font-family: PingFangSC-Regular;
+      font-size: 13px;
+      color: #63d9ff;
+      margin-left: 10px;
+    }
+
+    .close-list {
+      width: 15px;
+      height: 15px;
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+      cursor: pointer;
+      background: url(~assets/images/common/close_15.png) center / cover
+        no-repeat;
+    }
+  }
+
+  .table {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  >>> .el-table {
+    left: 10px;
+    width: 300px;
+    background: transparent;
+  }
+}
+</style>

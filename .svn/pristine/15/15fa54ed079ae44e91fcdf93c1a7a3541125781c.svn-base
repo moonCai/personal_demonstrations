@@ -1,0 +1,380 @@
+<template>
+  <div class id="hot-cesium">
+    <!-- 数据源 -->
+    <div class="" id="data-source-container">
+      <div id="data-source" @click="clickDataSourceEvent">
+        数据源
+        <i class="el-icon-arrow-up"></i>
+      </div>
+
+      <div class="" id="data-items" v-if="displayDatasource">
+        <ul>
+          <li v-for="dataSource in dataSources" :key="dataSource.category">
+            <input type="checkbox" v-model="dataSource.isSeleted" />
+            <span>{{ dataSource.category }}</span>
+          </li>
+        </ul>
+
+        <div class="" id="add-data-source" @click="displayAddSource = true">
+          <strong>+</strong> 添加数据源
+        </div>
+      </div>
+    </div>
+
+    <!-- 日期选择器 -->
+    <div id="time-picker-bar">
+      <el-date-picker
+        v-if="displayTimePicker"
+        v-model="timeArr"
+        type="datetimerange"
+        start-placeholder="开始日期"
+        end-placeholder="结束日期"
+        :picker-options="pickerOptions"
+      ></el-date-picker>
+
+      <div
+        :class="displayTimePicker ? 'display' : ''"
+        id="display-bar"
+        @click="scaleTimePicker"
+      ></div>
+    </div>
+
+    <!-- 图例 -->
+    <div class="" id="lengend">
+      <div class="" id="top-trangle"></div>
+      <div class="" id="bottom-trangle"></div>
+      <div class="" id="max">{{ maxCount }}</div>
+      <div class="" id="min">{{ minCount }}</div>
+      <div class="" id="color-bar"></div>
+    </div>
+
+    <!-- 选择数据源弹窗 -->
+    <add-data-source
+      v-if="displayAddSource"
+      @hiddenAddSource="hiddenAlertEvent"
+      @addNewData="displayNewData = true"
+    />
+
+    <!-- 新增数据弹窗 -->
+    <add-data v-if="displayNewData" @hiddenNewData="displayNewData = false" />
+  </div>
+</template>
+
+<script>
+import { defaultInitCesium } from "assets/js/MapInit";
+import { server } from "request/api";
+import { GMTToStr } from "assets/js/Time";
+import { mapMoveEnd } from "assets/js/MapEvent";
+import { hubeiGeoRect } from "request/env";
+import AddDataSource from "./AddDataSource";
+import AddData from "./AddData";
+
+export default {
+  data() {
+    return {
+      hotMapViewer: null,
+      // 显示数据源下拉框
+      displayDatasource: false,
+      // 显示时间选择器
+      displayTimePicker: false,
+      // 显示添加数据源
+      displayAddSource: false,
+      // 显示新增数据
+      displayNewData: false,
+      dataSources: [
+        {
+          category: "运营商信令数据",
+          isSeleted: true,
+        },
+        {
+          category: "目标人员数据",
+          isSeleted: false,
+        },
+        {
+          category: "健康宝数据",
+          isSeleted: false,
+        },
+        {
+          category: "公交数据",
+          isSeleted: false,
+        },
+      ],
+      maxCount: 1000,
+      minCount: 0,
+      timeArr: "",
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+    };
+  },
+  components: {
+    AddDataSource,
+    AddData,
+  },
+  created() {},
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 场景初始化
+    initScene() {
+      this.hotMapViewer = defaultInitCesium("hot-cesium", "wms", false);
+
+      this.hotMapViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+
+      this.hotMapViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("static/hubei.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0.4),
+          strokeWidth: 3,
+        })
+      );
+    },
+
+    // 隐藏弹窗
+    hiddenAlertEvent() {
+      this.displayAddSource = false;
+      this.displayNewData = false;
+    },
+
+    // 展开-收起数据源
+    clickDataSourceEvent() {
+      this.displayDatasource = !this.displayDatasource;
+
+      let rotateStr = this.displayDatasource
+        ? "rotate(0deg)"
+        : "rotate(180deg)";
+      $("#data-source > i").css({ transform: rotateStr });
+    },
+
+    // 展开-收起日期选择器
+    scaleTimePicker() {
+      this.displayTimePicker = !this.displayTimePicker;
+
+      let widthStr = this.displayTimePicker ? "532px" : "25px";
+      $("#time-picker-bar").css({ width: widthStr });
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.hotMapViewer && this.hotMapViewer.destroy();
+  },
+};
+</script>
+
+<style scoped lang="scss">
+#hot-cesium {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(1, 115, 166, 1);
+
+  #data-source-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    cursor: pointer;
+
+    #data-source {
+      width: 90px;
+      height: 40px;
+      line-height: 40px;
+      color: #fff;
+      font-size: 16px;
+      background: #00c2ff;
+      border-radius: 4px;
+      box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    i {
+      transform: rotate(180deg);
+    }
+
+    #data-items {
+      width: 160px;
+      height: 200px;
+      background: #102028;
+
+      ul {
+        height: 150px;
+        padding: 10px;
+        border-bottom: 1px solid #044b53;
+        overflow-y: scroll;
+        margin-top: 5px;
+        box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+
+        li {
+          height: 30px;
+          line-height: 30px;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+          text-align: left;
+          position: relative;
+
+          input {
+            vertical-align: sub;
+          }
+
+          span {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            overflow: hidden;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+          }
+        }
+      }
+
+      #add-data-source {
+        height: 50px;
+        line-height: 50px;
+        cursor: pointer;
+        font-family: PingFangSC-Medium;
+        font-size: 14px;
+        color: #ffffff;
+
+        strong {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+
+  #time-picker-bar {
+    width: 25px;
+    height: 60px;
+    background: #000;
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    z-index: 999;
+    border: 1px solid #00c2ff;
+    border-radius: 4px;
+    box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+  }
+
+  #display-bar {
+    width: 25px;
+    height: 60px;
+    background: url(~assets/images/hotMap/hide.png) center / cover;
+    position: absolute;
+    top: -1px;
+    right: 0;
+    cursor: pointer;
+
+    &.display {
+      background: url(~assets/images/hotMap/display.png) center / cover;
+    }
+  }
+
+  #lengend {
+    width: 90px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #999;
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 99;
+    border-radius: 5px;
+    box-shadow: 0 5px 10px 5px rgba(0, 0, 0, 0.3);
+
+    #color-bar {
+      width: 20px;
+      height: 80px;
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      background: linear-gradient(
+        rgb(255, 0, 0),
+        rgb(255, 255, 0),
+        rgb(0, 255, 0),
+        rgb(0, 0, 255)
+      );
+    }
+
+    #top-trangle,
+    #bottom-trangle {
+      width: 10px;
+      height: 10px;
+      position: absolute;
+      left: 30px;
+    }
+
+    #top-trangle {
+      background: url("~assets/images/hotMap/red_trangle.png") center / cover;
+      top: 10px;
+    }
+
+    #bottom-trangle {
+      background: url("~assets/images/hotMap/blue_trangle.png") center / cover;
+      bottom: 10px;
+    }
+
+    #max,
+    #min {
+      color: #111;
+      font-size: 14px;
+      position: absolute;
+      left: 45px;
+    }
+
+    #max {
+      top: 5px;
+    }
+
+    #min {
+      bottom: 5px;
+    }
+  }
+}
+</style>
+
+<style>
+#data-source >>> .el-icon-arrow-up {
+  transform: rotate(0deg);
+}
+.el-range-editor--small.el-input__inner {
+  width: 465px;
+  height: 36px;
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+}
+.el-range-editor--small .el-range__close-icon,
+.el-range-editor--small .el-range__icon {
+  line-height: 28px;
+}
+.el-range-editor--small .el-range-separator {
+  line-height: 28px;
+}
+.el-range-editor--small .el-range-input {
+  font-size: 14px;
+}
+</style>
+
+

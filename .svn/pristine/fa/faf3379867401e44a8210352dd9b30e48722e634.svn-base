@@ -1,0 +1,219 @@
+<template>
+  <div class id="meeting-container">
+    <div class="bar">
+      <span class="track_id">分析目标：{{ targetId }}</span>
+      <span id="close" @click="closeEvent"></span>
+    </div>
+
+    <div class="table-container">
+      <el-table :data="list" height="166" border style="width: 440px">
+        <el-table-column type="index" label="序号" width="60"></el-table-column>
+        <el-table-column prop="by_peer_id" label="姓名" width="70"></el-table-column>
+        <el-table-column prop="is_peer" label="是否同行" width="80"></el-table-column>
+        <el-table-column prop="peer_ratio" label="同行比例（%）" width="120"></el-table-column>
+        <el-table-column label="操作" width="100">
+          <template slot-scope="scope">
+            <el-button v-if="scope.row.peer_ratio != 0" @click="handleClick(scope.row)" type="text" size="small">查看详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      // 轨迹id
+      trackIds: "",
+      // 列表数据
+      tableData: [],
+    };
+  },
+  props: ["list", "targetId"],
+  methods: {
+    // 查看详情
+    handleClick(row) {
+      this.$emit("lookMore", row);
+    },
+
+    //  关闭窗口
+    closeEvent() {
+      this.$emit("displayTable", false);
+    },
+  },
+};
+</script>>
+
+<style scoped>
+#meeting-container {
+  width: 470px;
+  height: 250px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10000;
+  background: rgba(4, 24, 35, 1);
+  border: rgba(0, 142, 192, 1);
+}
+#meeting-container .bar {
+  height: 46px;
+  line-height: 46px;
+  border-bottom: 1px solid rgba(3, 195, 255, 0.5);
+}
+#meeting-container .bar .title {
+  color: #fff;
+  padding-left: 15px;
+  float: left;
+  font-size: 16px;
+  font-weight: 600;
+}
+#meeting-container .bar .track_id,
+#meeting-container .bar .ratio {
+  float: left;
+  padding-left: 15px;
+  font-size: 15px;
+  color: #63d9ff;
+}
+#meeting-container .bar #close {
+  width: 15px;
+  height: 15px;
+  background: url("../../../assets/images/common/close_15.png") no-repeat center /
+    cover;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+#meeting-container .table-container {
+  height: 160px;
+  padding-left: 16px;
+  padding-top: 20px;
+}
+
+/* 相遇点列表 */
+#meeting-container >>> .el-table th > .cell,
+#meeting-container >>> .el-table .cell {
+  text-align: center;
+}
+#meeting-container >>> .el-table__fixed-right::before,
+#meeting-container >>> .el-table__fixed::before {
+  background-color: transparent;
+}
+#meeting-container >>> .el-table__body,
+#meeting-container >>> .el-table__footer,
+#meeting-container >>> .el-table__header {
+  border-left: 1px solid #0ab8f2;
+}
+
+#meeting-container >>> .el-table thead,
+#meeting-container >>> .el-table__body {
+  position: relative;
+}
+#meeting-container >>> .el-table thead::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#meeting-container >>> .el-table__body::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 1px;
+}
+
+#meeting-container >>> .el-table__body tr.hover-row > td {
+  background-color: rgb(4, 20, 39);
+}
+#meeting-container >>> .el-table__body-wrapper {
+  background: rgb(4, 20, 39);
+  scrollbar-width: none;
+}
+
+#meeting-container >>> .el-table th,
+#meeting-container >>> .el-table__header-wrapper {
+  background: -webkit-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Safari 5.1 - 6.0 */
+  background: -o-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Opera 11.1 - 12.0 */
+  background: -moz-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Firefox 3.6 - 15 */
+  background: linear-gradient(#439bbb, rgb(4, 20, 39)); /* 标准的语法 */
+}
+#meeting-container >>> .el-table tr {
+  background: rgba(4, 20, 39, 1);
+}
+
+#meeting-container
+  >>> .el-table--enable-row-hover
+  .el-table__body
+  tr:hover
+  > td {
+  background: rgba(4, 20, 39, 1);
+}
+
+#meeting-container >>> .el-table thead {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+#meeting-container >>> .el-button--text {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 350;
+  padding: 5px 10px;
+  background: rgba(10, 73, 107, 1);
+  border: 1px solid #0ab8f2;
+}
+#meeting-container >>> .el-table--fit {
+  border-left: none;
+  border-right: none;
+}
+#meeting-container >>> .el-table td,
+#meeting-container >>> .el-table th.is-leaf {
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#meeting-container >>> .el-table::before {
+  background: transparent;
+}
+#meeting-container >>> .el-table {
+  color: #fff;
+  font-weight: 350;
+  font-size: 13px;
+  background: rgba(4, 20, 39, 1);
+}
+#meeting-container >>> .el-table__empty-block {
+  background: rgba(4, 20, 39, 1);
+  border-left: 1px solid #0ab8f2;
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#meeting-container >>> .el-table--border,
+#meeting-container >>> .el-table--group {
+  border: none;
+}
+#meeting-container >>> .el-table--border::after,
+#meeting-container >>> .el-table--group::after {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: transparent;
+}
+</style>

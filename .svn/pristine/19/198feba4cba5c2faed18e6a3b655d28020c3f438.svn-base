@@ -1,0 +1,470 @@
+<template>
+  <div id="trajectory-container">
+    <!-- content start -->
+    <div class="content-container">
+      <!-- map -->
+      <div class id="trajectory-cesium"></div>
+
+      <div class id="right-side">
+        <!-- 查询参数 -->
+        <div class="container1">
+          <div class="title">查询参数</div>
+          <div class="condition">
+            <el-form
+              :model="ruleForm"
+              :rules="rules"
+              ref="ruleForm"
+              label-width="90px"
+              class="demo-ruleForm"
+            >
+              <!-- 人员 -->
+              <el-form-item label="用户ID" prop="trackId">
+                <el-input
+                  v-model="ruleForm.trackId"
+                  @change="finishIdInputEvent"
+                ></el-input>
+              </el-form-item>
+
+              <!-- 开始时间 -->
+              <el-form-item prop="startTime" label="开始时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择日期"
+                  v-model="ruleForm.startTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+
+              <!-- 结束时间 -->
+              <el-form-item prop="endTime" label="结束时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择日期"
+                  v-model="ruleForm.endTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+            </el-form>
+
+            <el-button
+              class="handle"
+              type="primary"
+              @click="resetTrack('ruleForm')"
+              >重置</el-button
+            >
+            <el-button
+              class="handle"
+              type="primary"
+              :class="isLegal ? '' : 'disable'"
+              :disabled="!isLegal"
+              @click="buildTrack('ruleForm')"
+              >查询</el-button
+            >
+          </div>
+
+          <!-- 结果列表 -->
+          <div class="" id="track-result">
+            <build-track
+              v-if="showResult"
+              @displayResult="showResult = false"
+              @reviewGrid="reviewGridEvent"
+              :data="resultData"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- content end -->
+  </div>
+</template>
+
+<script>
+import { defaultInitCesium } from "assets/js/MapInit";
+import {
+  addFillTrackGrids,
+  add2dFillAndBorderGrids,
+} from "assets/js/DrawGrids";
+import { server } from "request/api";
+import { hubeiGeoRect } from "request/env";
+import { GMTToTimeStr } from "assets/js/Time";
+
+import BuildTrack from "./childrenCompons/ResultList";
+
+export default {
+  data() {
+    return {
+      trackViewer: null,
+      ruleForm: {
+        trackId: "",
+        startTime: Date.now() - 14 * 24 * 3600 * 1000,
+        endTime: Date.now(),
+      },
+      rules: {
+        trackId: [
+          { required: true, message: "请输入人员ID", trigger: "change" },
+        ],
+        startTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择开始时间",
+            trigger: "change",
+          },
+        ],
+        endTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择结束时间",
+            trigger: "change",
+          },
+        ],
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+      // 轨迹网格
+      track_grid_primitive: null,
+      // 查看网格
+      hightlightGrid: null,
+      billBoard: null,
+      // 人员id有效
+      isLegal: false,
+      // 显示结果列表
+      showResult: false,
+      // 查询结果
+      resultData: {},
+    };
+  },
+  components: {
+    BuildTrack,
+  },
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 场景初始化
+    initScene() {
+      this.trackViewer = defaultInitCesium("trajectory-cesium", "google", true);
+
+      this.trackViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+
+      this.trackViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("static/hubei.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0.4),
+          strokeWidth: 3,
+        })
+      );
+
+      // 轨迹网格
+      this.track_grid_primitive = this.trackViewer.scene.primitives.add(
+        new Cesium.PrimitiveCollection()
+      );
+    },
+
+    // 验证人员有效性
+    finishIdInputEvent(val) {
+      this.isLegal = false;
+      this.vertifyTheLegalOfIds({ track_id_list: val });
+    },
+
+    // 绘制轨迹
+    drawTrack(trackData) {
+      let borderColor = Cesium.Color.YELLOW;
+      let fillColor = Cesium.Color.YELLOW.withAlpha(0.8);
+
+      // 绘制折线轨迹
+      let linePoints = trackData.list.reduce((result, point) => {
+        result.push(point.boundary[0], point.boundary[1], 0);
+        return result;
+      }, []);
+
+      this.trackViewer.entities.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArrayHeights(linePoints),
+          width: 2,
+          material: new Cesium.PolylineDashMaterialProperty({
+            color: fillColor,
+          }),
+        },
+      });
+
+      // 添加网格轨迹
+      add2dFillAndBorderGrids(
+        trackData.list,
+        this.track_grid_primitive,
+        fillColor,
+        borderColor
+      );
+
+      // 添加轨迹标注
+      let startPoints = [
+        {
+          lng: trackData.list[0].boundary[2],
+          lat: trackData.list[0].boundary[3],
+          height: 10,
+          trackId: trackData.track_id + ": 起点",
+          color: borderColor,
+        },
+      ];
+
+      let pointsLength = trackData.list.length - 1;
+      let endPoints = [
+        {
+          lng: trackData.list[pointsLength].boundary[2],
+          lat: trackData.list[pointsLength].boundary[3],
+          height: 10,
+          trackId: trackData.track_id + ": 终点",
+          color: borderColor,
+        },
+      ];
+
+      this.addTrackMarkers(startPoints);
+      this.addTrackMarkers(endPoints);
+    },
+
+    // 添加轨迹标注
+    addTrackMarkers(startPoints) {
+      startPoints.forEach((point) => {
+        this.trackViewer.entities.add({
+          code: "track-name",
+          position: Cesium.Cartesian3.fromDegrees(
+            point.lng,
+            point.lat,
+            point.height
+          ),
+          label: {
+            text: point.trackId,
+            font: "14pt system-ui bold",
+            fillColor: point.color,
+            outlineWidth: 1,
+            outlineColor: Cesium.Color.BLACK,
+            showBackground: true,
+            backgroundColor: Cesium.Color.WHITE.withAlpha(0.8),
+            verticalOrigin: Cesium.VerticalOrigin.BOTTOM, //垂直方向以底部来计算标签的位置
+            pixelOffset: new Cesium.Cartesian2(30, -5), //偏移量,
+          },
+        });
+      });
+    },
+
+    // 查看网格
+    reviewGridEvent(row) {
+      this.removeHighlightGrid();
+
+      this.billBoard = this.trackViewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(
+          row.boundary[0],
+          row.boundary[1],
+          10
+        ),
+        label: {
+          text: `${row.geo_num} \n ${row.track_time}`,
+          font: "16px Helvetica",
+          fillColor: Cesium.Color.ORANGERED,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 4,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          pixelOffset: new Cesium.Cartesian2(0, 30), //偏移量,
+        },
+      });
+
+      this.hightlightGrid = this.trackViewer.entities.add({
+        rectangle: {
+          coordinates: Cesium.Rectangle.fromDegrees(
+            row.boundary[0],
+            row.boundary[1],
+            row.boundary[2],
+            row.boundary[3]
+          ),
+          material: Cesium.Color.ORANGERED,
+          height: 1,
+        },
+      });
+    },
+
+    // 移除高亮网格
+    removeHighlightGrid() {
+      this.billBoard && this.trackViewer.entities.remove(this.billBoard);
+      this.hightlightGrid &&
+        this.trackViewer.entities.remove(this.hightlightGrid);
+    },
+
+    // 构建轨迹
+    buildTrack(formName) {
+      this.clearDraw();
+
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          // 校验开始时间是否小于结束时间
+          let startTime = this.ruleForm.startTime;
+          let endTime = this.ruleForm.endTime;
+
+          if (typeof startTime != "number") {
+            startTime = startTime.getTime();
+          }
+
+          if (typeof endTime != "number") {
+            endTime = endTime.getTime();
+          }
+
+          if (endTime - startTime < 0) {
+            this.$message({
+              type: "warning",
+              message: "开始时间必须小于结束时间",
+            });
+            return;
+          }
+
+          let params = {
+            track_id_list: this.ruleForm.trackId,
+            start_time: GMTToTimeStr(startTime),
+            end_time: GMTToTimeStr(endTime),
+            map_height: Math.ceil(
+              this.trackViewer.camera.positionCartographic.height
+            ),
+          };
+
+          this.loadTrackData(params);
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+
+    // 重置轨迹
+    resetTrack(formName) {
+      this.$refs[formName].resetFields();
+      this.showResult = false;
+      this.isLegal = false;
+      this.clearDraw();
+    },
+
+    // 移除屏幕绘制
+    clearDraw() {
+      // 移除所有轨迹标注和折线
+      this.trackViewer.entities.removeAll();
+
+      // 移除所有轨迹网格
+      this.track_grid_primitive.removeAll();
+
+      this.removeHighlightGrid();
+
+      // 地图复原
+      this.trackViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+    },
+
+    // 加载足迹数据
+    loadTrackData(params) {
+      this.resultData = {};
+      server.trackList(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        if (response.data.length < 1) {
+          this.$message({
+            type: "warning",
+            message: "无当前用户的轨迹数据",
+          });
+          return;
+        }
+
+        this.resultData = response.data[0];
+        this.showResult = true;
+
+        this.drawTrack(response.data[0]);
+      });
+    },
+
+    // 验证人员id的有效性
+    vertifyTheLegalOfIds(params) {
+      server.vertifyIds(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        this.isLegal = response.invalid_track_list.length == 0;
+
+        if (response.invalid_track_list.length > 0) {
+          this.$message({
+            type: "warning",
+            message: `无效人员: ${response.invalid_track_list.join(",")}`,
+          });
+        }
+      });
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.trackViewer && this.trackViewer.destroy();
+  },
+};
+</script>
+
+<style scoped lang="scss">
+@import url(../../assets/css/rightSide.css);
+
+#trajectory-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+
+  .content-container {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    #trajectory-cesium {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 360px;
+      bottom: 10px;
+      box-shadow: 0 0 5px 5px rgba(3, 195, 255, 0.7);
+      border: 1px solid rgba(3, 195, 255, 0.7);
+    }
+
+    #right-side >>> .el-select__tags {
+      min-height: 33px;
+      max-height: 77px;
+      overflow: scroll;
+    }
+
+    #track-result {
+      position: absolute;
+      top: 280px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+    }
+  }
+}
+</style>
+

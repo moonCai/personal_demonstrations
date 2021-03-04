@@ -1,0 +1,201 @@
+<template>
+  <div id="header" v-if="show">
+    <div id="left-header">
+      <img src="~assets/images/common/logo.png" />
+      <span>疫情防控分析系统</span>
+    </div>
+
+    <div id="right-header">
+      <ul id="menu">
+        <li
+          v-for="(menu, index) in menus"
+          :key="menu.item"
+          @click="menuItemEvent(index, menu)"
+          :class="currentIndex == index ? 'selected' : ''"
+        >
+          {{ menu.item }}
+        </li>
+      </ul>
+      <div class="user">
+        <img src="~assets/images/header/user.png" />
+        <span>admin</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      menus: [
+        {
+          item: "网格热力",
+          path: "/hotMap",
+        },
+        {
+          item: "轨迹查询",
+          path: "/buildTrack",
+        },
+        {
+          item: "可能密切接触查询",
+          path: "/closeContact",
+        },
+      ],
+      currentIndex: 0,
+    };
+  },
+  props: ["show"],
+  methods: {
+    // 切换菜单
+    menuItemEvent(index, menu) {
+      this.currentIndex = index;
+      this.$router.push(menu.path);
+    },
+  },
+  mounted() {},
+};
+</script>
+
+<style scoped lang="scss">
+#header {
+  width: 100%;
+  height: 60px;
+  position: relative;
+  z-index: 9999;
+
+  #left-header {
+    width: 595px;
+    height: 100%;
+    line-height: 60px;
+    background: url("~assets/images/homePage/left-header.png");
+    position: absolute;
+    top: 0;
+    left: 0;
+    text-align: left;
+
+    img {
+      margin-left: 30px;
+      margin-right: 10px;
+      vertical-align: sub;
+    }
+
+    span {
+      color: #fff;
+      font-size: 24px;
+      font-weight: 600;
+    }
+  }
+
+  #right-header {
+    position: absolute;
+    left: 590px;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(
+      to right,
+      #000 0%,
+      rgba(3, 195, 255, 0.2) 10%,
+      rgba(3, 195, 255, 0.3) 100%
+    );
+    border-bottom: 1px solid rgba(0, 150, 197, 1);
+
+    &::before {
+      content: "";
+      width: 1px;
+      height: 70px;
+      position: absolute;
+      top: -12px;
+      left: 0px;
+      background: rgba(0, 150, 197, 1);
+      transform: rotate(35deg);
+      transform-origin: left bottom;
+    }
+
+    #menu {
+      height: 60px;
+
+      li {
+        float: left;
+        font-family: PingFangSC-Semibold;
+        font-size: 16px;
+        color: #00beed;
+        letter-spacing: 0.44px;
+        height: 60px;
+        line-height: 60px;
+        position: relative;
+        cursor: pointer;
+
+        &.selected {
+          font-family: PingFangSC-Semibold;
+          font-size: 18px;
+          color: #ffffff;
+          letter-spacing: 0.5px;
+        }
+
+        &:first-of-type {
+          margin-left: 90px;
+        }
+
+        &:nth-of-type(2) {
+          margin-left: 50px;
+        }
+
+        &:nth-of-type(3) {
+          margin-left: 50px;
+          &::after {
+            content: "";
+            width: 28px;
+            height: 13px;
+            position: absolute;
+            top: 50%;
+            right: -40px;
+            transform: translateY(-50%);
+            background: url("~assets/images/common/decorate.png");
+          }
+        }
+
+        &::before {
+          content: "";
+          width: 28px;
+          height: 13px;
+          position: absolute;
+          top: 50%;
+          left: -40px;
+          transform: translateY(-50%);
+          background: url("~assets/images/common/decorate.png");
+        }
+      }
+    }
+
+    .user {
+      width: 70px;
+      height: 60px;
+      position: absolute;
+      top: 0;
+      right: 20px;
+      color: #fff;
+      font-size: 14px;
+
+      img {
+        width: 26px;
+        height: 26px;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+      }
+
+      span {
+        font-size: 14px;
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        cursor: pointer;
+      }
+    }
+  }
+}
+</style>

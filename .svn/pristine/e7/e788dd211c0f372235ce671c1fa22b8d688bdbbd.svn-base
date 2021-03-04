@@ -1,0 +1,190 @@
+<template>
+  <div id="login">
+    <!-- header -->
+    <div class="" id="header">
+      <img src="~assets/images/common/logo.png" />
+      疫情防控分析系统
+    </div>
+
+    <div class="earth"></div>
+
+    <!-- login -->
+    <div class="" id="login-container">
+      <div class="title">登录</div>
+
+      <!-- 用户名 -->
+      <div class="login-item">
+        <span>用户名</span>
+        <input
+          type="text"
+          id="account"
+          v-model="account"
+          placeholder="用户名"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- 密码 -->
+      <div class="login-item">
+        <span>密码</span>
+        <input
+          type="password"
+          id="password"
+          v-model="password"
+          placeholder="密码"
+          autocomplete="off"
+        />
+      </div>
+
+      <span id="forget">忘记密码？</span>
+
+      <!-- 登录按钮 -->
+      <div id="login-button" @click="loginEvent">登录</div>
+      <div id="tip">用户名或密码有误，请重新输入</div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "login",
+  data() {
+    return {
+      account: "",
+      password: "",
+    };
+  },
+  methods: {
+    inputEvent(type) {
+      switch (type) {
+        case "account":
+          this.account = "";
+          break;
+        case "password":
+          let passwordEle = document.getElementById("password");
+          let inputType = passwordEle.type == "password" ? "text" : "password";
+          passwordEle.type = inputType;
+          break;
+      }
+    },
+
+    // 登录
+    loginEvent() {
+      this.$router.push("/hotMap");
+    },
+  },
+  destroyed() {},
+};
+</script>
+
+<style scoped lang="scss">
+#login {
+  width: 100%;
+  height: 100%;
+  background: url("~assets/images/login/cover.png") center / cover no-repeat;
+
+  #header {
+    width: 100%;
+    height: 66px;
+    line-height: 66px;
+    font-weight: 600;
+    color: #fff;
+    font-size: 24px;
+    background: url("~assets/images/login/nav.png") center no-repeat;
+    position: fixed;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    img {
+      vertical-align: sub;
+    }
+  }
+
+  .earth {
+    width: 580px;
+    height: 580px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: url("~assets/images/login/earth.png") center / cover no-repeat;
+  }
+
+  #login-container {
+    width: 580px;
+    height: 322px;
+    background: url("~assets/images/login/login_bg.png") center / cover
+      no-repeat;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    .title {
+      font-family: PingFangSC-Semibold;
+      font-size: 24px;
+      color: #ffffff;
+      letter-spacing: 1px;
+      text-align: center;
+      line-height: 24px;
+      margin-top: 30px;
+    }
+
+    .login-item {
+      height: 42px;
+      line-height: 42px;
+      margin-top: 25px;
+      font-family: PingFangSC-Semibold;
+      font-size: 18px;
+      color: #ffffff;
+      letter-spacing: 0.2px;
+
+      span {
+        display: inline-block;
+        width: 60px;
+      }
+
+      input {
+        width: 296px;
+        height: 42px;
+        font-family: PingFangSC-Regular;
+        font-size: 16px;
+        color: #8ae2ff;
+        letter-spacing: 0.38px;
+        padding-left: 10px;
+        background: transparent;
+        border: 1px solid #00c8f9;
+        outline: none;
+      }
+    }
+
+    #forget {
+      font-family: PingFangSC-Regular;
+      font-size: 12px;
+      color: #d4d4d4;
+      letter-spacing: 0.29px;
+      margin-left: 300px;
+      cursor: pointer;
+    }
+
+    #login-button {
+      width: 210px;
+      height: 40px;
+      line-height: 40px;
+      background: rgba(0, 200, 201, 0.7);
+      border-radius: 4px;
+      margin-top: 30px;
+      margin-left: 185px;
+      font-family: PingFangSC-Regular;
+      font-size: 18px;
+      color: #ffffff;
+    }
+
+    #tip {
+      font-size: 12px;
+      color: rgb(223, 17, 69);
+      margin-top: 5px;
+    }
+  }
+}
+</style>

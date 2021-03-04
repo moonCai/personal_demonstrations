@@ -1,0 +1,233 @@
+<template>
+  <div class id="contact-container">
+    <div class="bar">
+      <span class="track_id">确诊者：{{ trackId }}</span>
+      <span id="close-contact" @click="closeEvent"></span>
+    </div>
+
+    <div class="table-container">
+      <el-table :data="tableData" height="166" border style="width: 330px">
+        <el-table-column type="index" label="序号" width="60"></el-table-column>
+        <el-table-column prop="track_id" label="track_id"></el-table-column>
+        <el-table-column label="操作" width="100">
+          <template slot-scope="scope">
+            <el-button
+              v-if="scope.row.count != 0"
+              @click="handleClick(scope.row)"
+              type="text"
+              size="small"
+            >查看详情</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      // 轨迹id
+      trackId: "",
+      // 列表数据
+      tableData: []
+    };
+  },
+  props: ["data"],
+  watch: {
+    data(newVal, oldVal) {
+      this.handleData();
+    }
+  },
+  created() {
+    this.handleData();
+  },
+  methods: {
+    // 查看详情
+    handleClick(row) {
+      this.$emit("detailId", row.track_id);
+    },
+
+    //   关闭窗口
+    closeEvent() {
+      this.$emit("displayContact", false);
+    },
+
+    //  处理数据
+    handleData() {
+      this.trackId = this.data.diagnosis_track_id;
+
+      let temp = [];
+      this.data.contract_list.forEach(trackId =>
+        temp.push({ track_id: trackId })
+      );
+      this.tableData = temp;
+    }
+  }
+};
+</script>>
+
+<style scoped>
+#contact-container {
+  width: 360px;
+  height: 250px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10000;
+  background: rgba(4, 24, 35, 1);
+  border: rgba(0, 142, 192, 1);
+}
+#contact-container .bar {
+  height: 46px;
+  line-height: 46px;
+  border-bottom: 1px solid rgba(3, 195, 255, 0.5);
+}
+#contact-container .bar .track_id,
+#contact-container .bar .ratio {
+  float: left;
+  padding-left: 15px;
+  font-size: 15px;
+  color: #63d9ff;
+}
+#contact-container .bar #close-contact {
+  width: 15px;
+  height: 15px;
+  background: url("../../../assets/images/common/close_15.png") no-repeat center /
+    cover;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+#contact-container .table-container {
+  height: 160px;
+  padding-left: 16px;
+  padding-top: 20px;
+}
+
+/* 相遇点列表 */
+#contact-container >>> .el-table th > .cell,
+#contact-container >>> .el-table .cell {
+  text-align: center;
+}
+#contact-container >>> .el-table__fixed-right::before,
+#contact-container >>> .el-table__fixed::before {
+  background-color: transparent;
+}
+#contact-container >>> .el-table__body,
+#contact-container >>> .el-table__footer,
+#contact-container >>> .el-table__header {
+  border-left: 1px solid #0ab8f2;
+}
+
+#contact-container >>> .el-table thead,
+#contact-container >>> .el-table__body {
+  position: relative;
+}
+#contact-container >>> .el-table thead::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#contact-container >>> .el-table__body::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 1px;
+}
+
+#contact-container >>> .el-table__body tr.hover-row > td {
+  background-color: rgb(4, 20, 39);
+}
+#contact-container >>> .el-table__body-wrapper {
+  background: rgb(4, 20, 39);
+  scrollbar-width: none;
+}
+
+#contact-container >>> .el-table th {
+  background: -webkit-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Safari 5.1 - 6.0 */
+  background: -o-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Opera 11.1 - 12.0 */
+  background: -moz-linear-gradient(
+    #439bbb,
+    rgb(4, 20, 39)
+  ); /* Firefox 3.6 - 15 */
+  background: linear-gradient(#439bbb, rgb(4, 20, 39)); /* 标准的语法 */
+}
+#contact-container >>> .el-table tr {
+  background: rgba(4, 20, 39, 1);
+}
+
+#contact-container
+  >>> .el-table--enable-row-hover
+  .el-table__body
+  tr:hover
+  > td {
+  background: rgba(4, 20, 39, 1);
+}
+
+#contact-container >>> .el-table thead {
+  font-size: 14px;
+  font-weight: 500;
+  color: #fff;
+}
+
+#contact-container >>> .el-button--text {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 350;
+  padding: 5px 10px;
+  background: rgba(10, 73, 107, 1);
+  border: 1px solid #0ab8f2;
+}
+#contact-container >>> .el-table--fit {
+  border-left: none;
+  border-right: none;
+}
+#contact-container >>> .el-table td,
+#contact-container >>> .el-table th.is-leaf {
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#contact-container >>> .el-table::before {
+  background: transparent;
+}
+#contact-container >>> .el-table {
+  color: #fff;
+  font-weight: 350;
+  font-size: 13px;
+  background: rgba(4, 20, 39, 1);
+}
+#contact-container >>> .el-table__empty-block {
+  background: rgba(4, 20, 39, 1);
+  border-left: 1px solid #0ab8f2;
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+#contact-container >>> .el-table--border,
+#contact-container >>> .el-table--group {
+  border: none;
+}
+#contact-container >>> .el-table--border::after,
+#contact-container >>> .el-table--group::after {
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: transparent;
+}
+</style>

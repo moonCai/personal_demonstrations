@@ -1,0 +1,118 @@
+<template>
+  <div id="bar"></div>
+</template>
+
+<script>
+import * as echarts from "echarts";
+import "echarts/lib/component/tooltip";
+import "echarts/lib/component/title";
+import "echarts/lib/component/toolbox";
+
+export default {
+  data() {
+    return {};
+  },
+  mounted() {
+    this.initBar();
+  },
+  methods: {
+    initBar() {
+      let option = {
+        title: {
+          text: "位置数据",
+          textStyle: {
+            color: "#fff",
+          }
+        },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "shadow",
+          },
+        },
+        legend: {
+          data: ["网格数量"],
+          textStyle: {
+            color: "rgba(255,255,255,0.8)",
+          },
+          
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "3%",
+          containLabel: true,
+        },
+        xAxis: {
+          name: "数量",
+          axisLabel: {
+            color: "rgba(255, 255, 255, 0.8)",
+          },
+          splitLine: {
+              lineStyle: {
+                  color: "rgba(255, 255, 255, 0.1)",
+              }
+          },
+          nameLocation: "bottom",
+          nameTextStyle: {
+            verticalAlign: "middle",
+          },
+          type: "value",
+          boundaryGap: [0, 0.01],
+        },
+        yAxis: {
+          type: "category",
+          axisLabel: {
+            color: "rgba(255, 255, 255, 0.8)",
+          },
+          data: [
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+            "1234567891234567-16",
+          ],
+        },
+        series: [
+          {
+            name: "网格数量",
+            type: "bar",
+            lineStyle: {
+              color: "#f00",
+            },
+            data: [
+              1820,
+              2348,
+              2904,
+              10470,
+              13144,
+              63030,
+              2349,
+              2904,
+              10470,
+              1823,
+            ],
+          },
+        ],
+      };
+
+      echarts.init(document.getElementById("bar")).setOption(option);
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+#bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 20px;
+  bottom: 0;
+}
+</style>

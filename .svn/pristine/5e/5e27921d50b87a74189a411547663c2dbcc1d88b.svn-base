@@ -1,0 +1,35 @@
+/**
+ * 配置编译环境和线上环境之间的切换
+ * baseUrl: 域名地址
+ */
+
+// 基础服务
+let baseUrl = '';
+
+// wms底图
+let wmsUrl = 'http://geoserver.iwhere.com/geoserver/global/wms?service=WMS';
+
+let offlineUrl;
+
+if (process.env.NODE_ENV == 'development') {
+  baseUrl = 'http://10.68.1.13:8096/hubei-trace-analysis';
+  // offlineUrl = "http://geoserver.iwhere.com/hubeishengimg/{z}/{x}/{y}.png";
+  offlineUrl = "http://geoserver.iwhere.com/global/{z}/{x}/{y}.png";
+
+} else if (process.env.NODE_ENV == 'production') {
+  baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+  offlineUrl = "http://10.25.176.204:8088/hubeishengimg/{z}/{x}/{y}.png";
+} else if (process.env.NODE_ENV == 'testing') {
+  baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+  offlineUrl = "http://10.25.176.204:8088/hubeishengimg/{z}/{x}/{y}.png";
+} else if (process.env.NODE_ENV == 'qaing') {
+  baseUrl = 'http://10.25.176.204:8088/hubei-trace-analysis';
+  offlineUrl = "http://10.25.176.204:8088/hubeishengimg/{z}/{x}/{y}.png";
+}
+
+export {
+  baseUrl,
+  wmsUrl,
+  offlineUrl,
+  hubeiGeoRect
+}

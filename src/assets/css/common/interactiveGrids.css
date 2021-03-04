@@ -1,0 +1,28 @@
+#us-map {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+polygon {
+  stroke: rgba(3, 195, 255);
+  stroke-opacity: 0.5;
+  fill: rgba(3, 195, 255);
+  fill-opacity: 0;
+}
+
+.default {
+  stroke: rgba(3, 195, 255) !important;
+  stroke-opacity: 0.5 !important;
+  fill: rgba(3, 195, 255) !important;
+  fill-opacity: 0 !important;
+}
+
+text {
+  fill: #fff;
+  font-weight: 600;
+  stroke: red;
+}
+

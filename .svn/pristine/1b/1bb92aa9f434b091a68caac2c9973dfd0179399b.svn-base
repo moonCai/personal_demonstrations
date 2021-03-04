@@ -1,0 +1,71 @@
+import {
+  defaultInitCesium
+} from "assets/js/cesium/MapInit";
+
+export const mixin = {
+  data() {
+    return {
+      mapViewer: null,
+      hubeiGeoRect: [
+        113.15906303451439,
+        29.93802544460981,
+        115.43153969272025,
+        31.38353006245101
+      ]
+    }
+  },
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 创建地图
+    initMapViewer() {
+      this.mapViewer = defaultInitCesium("cesium-container", "offline", true);
+
+      this.mapViewer.scene.screenSpaceCameraController.minimumZoomDistance = 4000;
+
+      this.mapViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          this.hubeiGeoRect[0],
+          this.hubeiGeoRect[1],
+          this.hubeiGeoRect[2],
+          this.hubeiGeoRect[3]
+        ),
+      });
+
+      this.mapViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("static/wuhan.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0),
+          strokeWidth: 1,
+        })
+      );
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.mapViewer && this.mapViewer.destroy();
+  },
+}
+
+export const resetMapLocationMixin = {
+  methods: {
+    // 重置地图位置
+    resetMapLocation() {
+      this.mapViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          this.hubeiGeoRect[0],
+          this.hubeiGeoRect[1],
+          this.hubeiGeoRect[2],
+          this.hubeiGeoRect[3]
+        ),
+      });
+    },
+  }
+}

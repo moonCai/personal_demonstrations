@@ -1,0 +1,169 @@
+<template>
+  <div class="dimming">
+    <div class="report">
+      <div class="title">分析报告</div>
+
+      <span class="close" @click="closeReportEvent"></span>
+
+      <div class="content">
+        <div class="info">
+          <ul id="report-info">
+            <li>
+              <div class="category">用户ID：</div>
+              <div class="category-detail">{{ userId }}</div>
+            </li>
+
+            <li>
+              <div class="category">人员类别：{{ personType }}</div>
+            </li>
+
+            <li>
+              <div class="category">点位数量：{{ totalCount }} 个</div>
+            </li>
+
+            <li>
+              <div class="category">开始时间：{{ startTime }}</div>
+            </li>
+
+            <li>
+              <div class="category">结束时间：{{ endTime }}</div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="histogram">
+          <histogram :list="histogramList" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Histogram from "components/common/Histogram";
+
+export default {
+  data() {
+    return {
+      userId: "",
+      personType: "",
+      totalCount: 0,
+      startTime: "",
+      endTime: "",
+      histogramList: [],
+    };
+  },
+  props: ["data"],
+  components: {
+    Histogram,
+  },
+  watch: {
+    data(newVal, oldVal) {
+      if (newVal) {
+        this.userId = newVal.userId;
+        // 1: 本地人， 0: 外地人
+        this.personType = newVal.is_local ? "本地人员" : "外来人员";
+        this.startTime = newVal.start_time;
+        this.endTime = newVal.end_time;
+        this.totalCount = newVal.point_count;
+        this.histogramList = newVal.geo_num_list;
+      } else {
+        this.userId = "";
+        this.personType = "";
+        this.startTime = "";
+        this.endTime = "";
+        this.histogramList = [];
+      }
+    },
+  },
+  methods: {
+    closeReportEvent() {
+      this.$emit("displayReport", false);
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+.dimming {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+
+  .report {
+    width: 800px;
+    height: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(4, 24, 35, 0.8);
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    .title {
+      height: 45px;
+      line-height: 45px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      background: rgba(3, 195, 225, 1);
+    }
+
+    .close {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      z-index: 10;
+      cursor: pointer;
+      background: url(~assets/images/common/white_close.png) no-repeat center /
+        cover;
+    }
+
+    .content {
+      width: 100%;
+      display: flex;
+      margin-top: 20px;
+
+      .info {
+        width: 340px;
+        height: 410px;
+        color: #0af;
+
+        #report-info {
+          margin-top: 60px;
+        }
+
+        li {
+          height: 40px;
+          line-height: 40px;
+          padding-left: 20px;
+
+          &:first-of-type {
+            height: 80px;
+          }
+
+          .category {
+            text-align: left;
+          }
+
+          .category-detail {
+            text-align: left;
+          }
+        }
+      }
+
+      .histogram {
+        flex: 1;
+        height: 410px;
+        position: relative;
+      }
+    }
+  }
+}
+</style>

@@ -1,0 +1,609 @@
+<template>
+  <div id="screening-container">
+    <!-- content start -->
+    <div class="content-container">
+      <!-- map -->
+      <div class id="screening-cesium">
+        <!-- 详情列表 -->
+        <detail-list
+          v-if="showDetail"
+          @displayDetail="displayDetailEvent"
+          @locationGrid="locationEvent"
+          :list="detailData"
+        ></detail-list>
+      </div>
+
+      <div class id="right-side">
+        <div class="container1">
+          <div class="title">查询参数</div>
+          <div class="condition">
+            <el-form
+              :model="ruleForm"
+              :rules="rules"
+              ref="ruleForm"
+              label-width="110px"
+              class="demo-ruleForm"
+            >
+              <!-- TrackID A -->
+              <el-form-item label="确诊人员" prop="trackIdA">
+                <el-input
+                  v-model="ruleForm.trackIdA"
+                  @change="finishIdInputEvent('trackA', $event)"
+                ></el-input>
+              </el-form-item>
+
+              <!-- TrackID B -->
+              <el-form-item label="待筛查人员" prop="trackIdB">
+                <el-input
+                  v-model="ruleForm.trackIdB"
+                  @change="finishIdInputEvent('trackB', $event)"
+                ></el-input>
+              </el-form-item>
+
+              <!-- 开始时间 -->
+              <el-form-item prop="startTime" label="开始时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择开始时间"
+                  v-model="ruleForm.startTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+
+              <!-- 结束时间 -->
+              <el-form-item prop="endTime" label="结束时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择结束时间"
+                  v-model="ruleForm.endTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+
+              <!-- 距离阈值 -->
+              <el-form-item label="距离阈值(格)" prop="distance">
+                <el-select
+                  v-model="ruleForm.distance"
+                  placeholder="请选择距离阈值"
+                >
+                  <el-option
+                    :label="'1（' + Math.floor(100 * gridWidth) / 100 + ' m)'"
+                    value="1"
+                  ></el-option>
+                  <el-option
+                    :label="'2（' + Math.floor(200 * gridWidth) / 100 + ' m)'"
+                    value="2"
+                  ></el-option>
+                  <el-option
+                    :label="'3（' + Math.floor(300 * gridWidth) / 100 + ' m)'"
+                    value="3"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+
+              <!-- 时间阈值 -->
+              <el-form-item label="时间阈值(s)" prop="time">
+                <el-input
+                  v-model="ruleForm.time"
+                  type="number"
+                  min="0"
+                  v-enter-number
+                ></el-input>
+              </el-form-item>
+
+              <!-- 重置 查询 -->
+              <el-form-item class="button">
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+                <el-button
+                  type="primary"
+                  :disabled="!(isTrackALegal && isTrackBLegal)"
+                  @click="submitForm('ruleForm')"
+                  >查询</el-button
+                >
+              </el-form-item>
+            </el-form>
+          </div>
+
+          <div class="" id="result-container">
+            <contact-list
+              v-if="showContact"
+              :data="contactData"
+              @detailId="checkDetailEvent"
+              @displayContact="displayContactEvent"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- content end -->
+  </div>
+</template>
+
+<script>
+import { defaultInitCesium } from "assets/js/MapInit";
+import { server } from "request/api";
+import { GMTToStr } from "assets/js/Time";
+import {
+  addFillTrackGrids,
+  add2dFillAndBorderGrids,
+} from "assets/js/DrawGrids";
+import { hubeiGeoRect } from "request/env";
+
+import DetailList from "./childrenCompons/DetailList";
+import ContactList from "./childrenCompons/ContactList";
+
+export default {
+  data() {
+    return {
+      trackViewer: null,
+      ruleForm: {
+        trackIdA: "",
+        trackIdB: "",
+        startTime: new Date() - 14 * 24 * 3600 * 1000,
+        endTime: new Date(),
+        distance: "",
+        time: "",
+      },
+      rules: {
+        trackIdA: [
+          { required: true, message: "请选择确诊人员", trigger: "change" },
+        ],
+        startTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择开始时间",
+            trigger: "change",
+          },
+        ],
+        endTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择结束时间",
+            trigger: "change",
+          },
+        ],
+        distance: [
+          { required: true, message: "请选择距离阈值", trigger: "change" },
+        ],
+        time: [{ required: true, message: "请填写时间阈值", trigger: "blur" }],
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+      contactData: "",
+      detailData: "",
+      // 显示接触者列表
+      showContact: false,
+      // 显示详情列表
+      showDetail: false,
+      track_grid_primitives: null,
+      // 定位网格
+      location_grid_primitives: null,
+      pointA: null,
+      pointB: null,
+      // 网格宽度
+      gridWidth: 0.25,
+      // 默认距离id
+      defaultDistance: 0,
+      // 筛查密切接触者参数
+      contactFilterParams: {},
+      // 分析目标有效性
+      isTrackALegal: false,
+      // 待筛查人员有效性
+      isTrackBLegal: true,
+    };
+  },
+  components: {
+    DetailList,
+    ContactList,
+  },
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 初始化场景
+    initScene() {
+      this.trackViewer = defaultInitCesium("screening-cesium", "google", true);
+
+      // 初始化位置
+      this.trackViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+
+      this.trackViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("static/hubei.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0.4),
+          strokeWidth: 3,
+        })
+      );
+
+      // 轨迹网格
+      this.track_grid_primitives = this.trackViewer.scene.primitives.add(
+        new Cesium.PrimitiveCollection()
+      );
+
+      // 定位网格
+      this.location_grid_primitives = this.trackViewer.scene.primitives.add(
+        new Cesium.PrimitiveCollection()
+      );
+    },
+
+    // 验证人员id有效性
+    finishIdInputEvent(type, val) {
+      switch (type) {
+        case "trackA":
+          this.isTrackALegal = false;
+          this.vertifyTheLegalOfIds({ track_id_list: val }, "trackA");
+          break;
+        case "trackB":
+          if (val != "") {
+            this.isTrackBLegal = false;
+            this.vertifyTheLegalOfIds({ track_id_list: val }, "trackB");
+          } else {
+            this.isTrackBLegal = true;
+          }
+          break;
+      }
+    },
+
+    // 加载密切接触者列表
+    submitForm(formName) {
+      this.resetPageInfo();
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          // 校验开始时间是否小于结束时间
+          let startTime = this.ruleForm.startTime;
+          let endTime = this.ruleForm.endTime;
+
+          if (typeof startTime != "number") {
+            startTime = startTime.getTime();
+          }
+
+          if (typeof endTime != "number") {
+            endTime = endTime.getTime();
+          }
+
+          if (endTime - startTime < 0) {
+            this.$message({
+              type: "warning",
+              message: "开始时间必须小于结束时间",
+            });
+            return;
+          }
+
+          // 校验时间阈值
+          if (this.ruleForm.time < 0 || this.ruleForm.time > 3600) {
+            this.$message({
+              type: "warning",
+              message: "时间阈值在0-3600之间，请输入有效的时间阈值",
+            });
+            return false;
+          }
+
+          let distanceId = this.defaultDistance;
+
+          if (this.ruleForm.distance.indexOf("m") > -1) {
+            distanceId = this.defaultDistance;
+          } else {
+            distanceId = this.ruleForm.distance;
+          }
+
+          let params = {
+            diagnosis_track_id: this.ruleForm.trackIdA,
+            contract_track_id_list: this.ruleForm.trackIdB,
+            start_time: GMTToStr(startTime),
+            end_time: GMTToStr(endTime),
+            map_height: Math.ceil(
+              this.trackViewer.camera.positionCartographic.height
+            ),
+            buffer_dist: distanceId,
+            thre_time: this.ruleForm.time,
+          };
+          this.contactFilterParams = params;
+          this.loadContactList(params);
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.resetPageInfo();
+    },
+
+    // 重置页面信息
+    resetPageInfo() {
+      // 清除绘制
+      this.removeLocationGrids();
+
+      this.track_grid_primitives.removeAll();
+      this.location_grid_primitives.removeAll();
+
+      // 地图复原
+      this.trackViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+
+      // 关闭弹窗
+      this.showContact = false;
+      this.showDetail = false;
+    },
+
+    // 移动定位网格
+    removeLocationGrids() {
+      this.pointA && this.trackViewer.entities.remove(this.pointA);
+      this.pointB && this.trackViewer.entities.remove(this.pointB);
+    },
+
+    // 定位
+    locationEvent(row) {
+      // 网格定位
+      console.log("row:", row);
+
+      this.removeLocationGrids();
+
+      this.pointA = this.trackViewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(
+          row.boundary_A[0],
+          row.boundary_A[1],
+          row.floorHeight_A
+        ),
+        label: {
+          text: row.track_A,
+          font: "14pt system-ui bold",
+          fillColor: Cesium.Color.ORANGERED,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          pixelOffset: new Cesium.Cartesian2(0, 5),
+        },
+      });
+
+      this.location_grid_primitives.removeAll();
+
+      let gridsA = [
+        {
+          boundary: row.boundary_A,
+          geo_num: row.GeoNum_A,
+          height: row.floorHeight_A,
+        },
+      ];
+      addFillTrackGrids(
+        gridsA,
+        this.location_grid_primitives,
+        Cesium.Color.ORANGERED.withAlpha(0.9)
+      );
+
+      let gridsB = [
+        {
+          boundary: row.boundary_B,
+          geo_num: row.GeoNum_B,
+          height: row.floorHeight_B,
+        },
+      ];
+
+      addFillTrackGrids(
+        gridsB,
+        this.location_grid_primitives,
+        Cesium.Color.YELLOW.withAlpha(0.9)
+      );
+
+      this.pointB = this.trackViewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(
+          row.boundary_B[0],
+          row.boundary_B[1],
+          row.floorHeight_B
+        ),
+        label: {
+          text: row.track_B,
+          font: "14pt system-ui bold",
+          fillColor: Cesium.Color.YELLOW,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          pixelOffset: new Cesium.Cartesian2(0, 20),
+        },
+      });
+    },
+
+    // 查看详情
+    checkDetailEvent(trackId) {
+      // 隐藏上一次的详情列表
+      this.showDetail = false;
+
+      // 移除绘制
+      this.removeLocationGrids();
+
+      // 地图复原
+      this.trackViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          hubeiGeoRect[0],
+          hubeiGeoRect[1],
+          hubeiGeoRect[2],
+          hubeiGeoRect[3]
+        ),
+      });
+
+      let params = {
+        diagnosis_track_id: this.contactFilterParams.diagnosis_track_id,
+        contract_track_id: trackId,
+        start_time: this.contactFilterParams.start_time,
+        end_time: this.contactFilterParams.end_time,
+        map_height: this.contactFilterParams.map_height,
+        buffer_dist: this.contactFilterParams.buffer_dist,
+        thre_time: this.contactFilterParams.thre_time,
+      };
+
+      this.loadDetailList(params);
+    },
+
+    // 关闭接触者列表
+    displayContactEvent(display) {
+      this.showContact = display;
+    },
+
+    // 关闭详情列表
+    displayDetailEvent(display) {
+      this.showDetail = display;
+    },
+
+    // 加载密切接触者详情
+    loadDetailList(params) {
+      this.detailData = [];
+
+      // 移除所有网格
+      this.track_grid_primitives.removeAll();
+
+      server.detailList(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        this.detailData = response.data;
+        this.showDetail = true;
+
+        // 绘制轨迹
+        add2dFillAndBorderGrids(
+          response.data.track_list,
+          this.track_grid_primitives,
+          Cesium.Color.ORANGERED.withAlpha(0.8),
+          Cesium.Color.ORANGERED
+        );
+
+        add2dFillAndBorderGrids(
+          response.data.by_track_list,
+          this.track_grid_primitives,
+          Cesium.Color.YELLOW.withAlpha(0.8),
+          Cesium.Color.YELLOW
+        );
+      });
+    },
+
+    // 验证人员id的有效性
+    vertifyTheLegalOfIds(params, type) {
+      server.vertifyIds(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        switch (type) {
+          case "trackA":
+            this.isTrackALegal = response.invalid_track_list.length == 0;
+            break;
+          case "trackB":
+            this.isTrackBLegal = response.invalid_track_list.length == 0;
+            break;
+        }
+
+        if (response.invalid_track_list.length > 0) {
+          this.$message({
+            type: "warning",
+            message: `无效人员: ${response.invalid_track_list.join(",")}`,
+          });
+        }
+      });
+    },
+
+    // 加载可能的密切接触者列表
+    loadContactList(params) {
+      server.contactList(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        if ($.isEmptyObject(response.data)) {
+          this.$message({
+            type: "warning",
+            message: "当前查询条件下无密切接触人员",
+          });
+          return;
+        }
+
+        if (response.data.contract_list.length < 1) {
+          this.$message({
+            type: "warning",
+            message: "当前查询条件下无密切接触人员",
+          });
+          return;
+        }
+
+        this.contactData = response.data;
+        this.showContact = true;
+      });
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.trackViewer && this.trackViewer.destroy();
+  },
+};
+</script>
+
+<style scoped lang="scss">
+@import url(../../assets/css/rightSide.css);
+
+#screening-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+
+  .content-container {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    #screening-cesium {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 360px;
+      bottom: 10px;
+      box-shadow: 0 0 5px 5px rgba(3, 195, 255, 0.7);
+      border: 1px solid rgba(3, 195, 255, 0.7);
+    }
+  }
+
+  #right-side {
+    #result-container {
+      position: absolute;
+      top: 410px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+    }
+  }
+
+  #right-side >>> .el-select__tags {
+    min-height: 33px;
+    max-height: 77px;
+    overflow: scroll;
+  }
+
+  #right-side >>> .el-input__inner {
+    width: 215px;
+  }
+}
+</style>
+
+

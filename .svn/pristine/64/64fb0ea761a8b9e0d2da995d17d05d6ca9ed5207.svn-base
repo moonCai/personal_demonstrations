@@ -1,0 +1,112 @@
+.el-table {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 350;
+  font-size: 12px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(4, 20, 39, 1);
+  overflow: scroll;
+}
+
+.el-table th>.cell,
+.el-table .cell {
+  text-align: center;
+}
+
+.el-table__body,
+.el-table__footer,
+.el-table__header {
+  border-left: 1px solid #0ab8f2;
+}
+
+.el-table thead,
+.el-table__body {
+  position: relative;
+}
+
+.el-table thead::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.el-table__body::after {
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #439bbb;
+  position: absolute;
+  top: 0;
+  right: 1px;
+}
+
+.el-table__body tr.hover-row>td {
+  background-color: rgb(4, 20, 39);
+}
+
+.el-table__body-wrapper {
+  background: rgb(4, 20, 39);
+  scrollbar-width: none;
+}
+
+.el-table th {
+  background: -webkit-linear-gradient(#439bbb,
+      rgb(4, 20, 39));
+  /* Safari 5.1 - 6.0 */
+  background: -o-linear-gradient(#439bbb,
+      rgb(4, 20, 39));
+  /* Opera 11.1 - 12.0 */
+  background: -moz-linear-gradient(#439bbb,
+      rgb(4, 20, 39));
+  /* Firefox 3.6 - 15 */
+  background: linear-gradient(#439bbb, rgb(4, 20, 39));
+  /* 标准的语法 */
+}
+
+.el-table tr {
+  background: #04283a;
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover>td {
+  background: #04283a;
+}
+
+.el-table thead {
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.el-button--text {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 350;
+  padding: 5px 10px;
+  background: rgba(10, 73, 107, 1);
+  border: 1px solid #0ab8f2;
+}
+
+.el-table td,
+.el-table th.is-leaf {
+  border-bottom: 1px solid #0ab8f2;
+  border-right: 1px solid #0ab8f2;
+}
+
+.el-table::before {
+  background: transparent;
+}
+
+.el-table__empty-block {
+  background: rgba(4, 20, 39, 1);
+}
+
+.el-table__body-wrapper {
+  background: rgba(4, 24, 35, 1);
+}

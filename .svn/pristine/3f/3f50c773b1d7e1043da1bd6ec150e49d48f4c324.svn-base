@@ -1,0 +1,644 @@
+<template>
+  <!--根标签-->
+  <div class="timeLine">
+    <!-- 时间单位 -->
+    <div class="time-unit" style="padding-left: 10px; padding-top: 5px;">
+      <span>时间单位</span>
+      <input type="radio" @click="choosendTimeUnit('year')" name="time-type">
+      <span>年</span>
+      <input type="radio" @click="choosendTimeUnit('month')" name="time-type">
+      <span>月</span>
+      <input v-show="!isTimeTrend" type="radio" @click="choosendTimeUnit('day')" name="time-type">
+      <span v-show="!isTimeTrend">日</span>
+    </div>
+
+    <!-- 播放相关控件 -->
+    <div style="position: relative; margin-top: 5px; height: 40px">
+      <!-- 起止时间选择 -->
+      <el-date-picker
+        :editable="false"
+        v-model="startTime"
+        :type="timeType"
+        placeholder="请选择开始时间"
+        :value-format="valueType"
+        :picker-options="pickerOptions"
+        @change="dateChange"
+      ></el-date-picker>
+      <el-date-picker
+        :editable="false"
+        v-model="endTime"
+        :type="timeType"
+        placeholder="请选择结束时间"
+        :value-format="valueType"
+        :picker-options="pickerOptions"
+        @change="dateChange"
+      ></el-date-picker>
+
+      <!-- 播放按钮 -->
+      <span id="play-button" class="play" @click="playOrPauseEvent"></span>
+
+      <!-- 播放条 -->
+      <div id="play-bar" style="display: inline-block" v-show="timeArr.length != 0">
+        <ul id="ulEle" style="position: relative">
+          <li v-for="(time, i) in timeArr1" :key="i" id="i">
+            <span class="scale-value">{{ time }}</span>
+            <span class="cirlceDot"></span>
+            <span
+              class="max-scale-value"
+              v-show="i + 2 == timeArr.length"
+            >{{ timeArr[timeArr.length - 1] }}</span>
+            <span class="lastDot" v-show="i + 2 == timeArr.length"></span>
+          </li>
+        </ul>
+        <div id="progress-bar" style="width: 6 * 80"></div>
+        <span class="trangel" id="startTrangel"></span>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import { updateHeatMap } from "../../assets/js/mapEvent";
+import store from "../../store/store";
+import Connector from "../../assets/js/connector";
+
+export default {
+  data() {
+    return {
+      timeType: "",
+      valueType: "yyyy-MM-dd",
+      startTime: "",
+      endTime: "",
+      // 是否播放
+      isPlay: false,
+      // 时间刻度1
+      timeArr1: [],
+      // 时间刻度
+      timeArr: [],
+      // 时间轴的初始状态
+      isOrigin: true,
+      // 设置禁用时间
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        }
+      }
+    };
+  },
+  watch: {},
+  mounted: function() {},
+  methods: {
+    // 生成播放轴
+    createPlayBar: function() {
+      // 游标
+      var startTrangel = document.getElementById("startTrangel");
+      // 进度条
+      var progressBar = document.getElementById("progress-bar");
+      if (this.timeArr1.length < 6) {
+        progressBar.style.width =
+          this.timeArr1.length * 80 - startTrangel.offsetLeft - 8 + "px";
+        progressBar.style.right = (6 - this.timeArr1.length) * 80 + "px";
+      } else {
+        progressBar.style.width = 480 - startTrangel.offsetLeft - 8 + "px";
+        progressBar.style.right = 0;
+      }
+
+      // 遍历所有时间bar,只显示当前这一个周期内的时间bar
+      var liEles = document.getElementById("ulEle").children;
+
+      // startTrangel.flag = Math.abs(ulEle.offsetLeft / 480);
+
+      if (startTrangel.flag == 0) {
+        var counts = this.timeArr1.length >= 6 ? 6 : this.timeArr1.length;
+        for (var i = 0; i < liEles.length; i++) {
+          var isShow = i >= 0 && i < counts;
+          liEles[i].style.visibility = isShow ? "visible" : "hidden";
+        }
+      } else {
+        // 遍历所有时间bar,只显示当前这一个周期内的时间bar
+        for (var i = 0; i < liEles.length; i++) {
+          // 获取ulEle的滚动次数
+          startTrangel.flag = Math.abs(ulEle.offsetLeft) / 480;
+          var isShow =
+            i - 6 * startTrangel.flag >= 0 && i - 6 * startTrangel.flag < 6;
+          liEles[i].style.visibility = isShow ? "visible" : "hidden";
+        }
+      }
+    },
+
+    //  选择年 / 月 / 日
+    choosendTimeUnit: function(type) {
+      var eles = document.getElementsByClassName("time-button");
+      var startTrangel = document.getElementById("startTrangel");
+
+      for (var i = 0; i < eles.length; i++) {
+        eles[i].style.background = "#5b8cff";
+      }
+      // 清空初始时间和结束时间
+      this.startTime = "";
+      this.endTime = "";
+      // 清空时间轴数据源
+      this.timeArr1 = [];
+      this.timeArr = [];
+      // 归置初始状态
+      this.isPlay = false;
+      document.getElementById("play-button").className = "play";
+      clearInterval(document.getElementById("startTrangel").timeId);
+      clearTimeout(startTrangel.timeId1);
+      startTrangel.style.left = "-8px";
+
+      switch (type) {
+        case "year":
+          this.timeType = "year";
+          this.valueType = "yyyy";
+          break;
+        case "month":
+          this.timeType = "month";
+          this.valueType = "yyyy-MM";
+          break;
+        case "day":
+          this.timeType = "date";
+          this.valueType = "yyyy-MM-dd";
+          break;
+      }
+    },
+
+    // 选择日期发生变化
+    dateChange: function() {
+      // 清空时间轴数据源
+      this.timeArr1 = [];
+      this.timeArr = [];
+      // 归置初始状态
+      this.isPlay = false;
+      document.getElementById("play-button").className = "play";
+      clearInterval(document.getElementById("startTrangel").timeId);
+      clearTimeout(startTrangel.timeId1);
+      startTrangel.style.left = "-8px";
+    },
+
+    //  选择时间合法性校验
+    timeLegalityVerfy: function() {
+      this.isOrigin = true;
+      // 先判断是否有起始时间
+      var noStartTime = this.startTime == "" || this.startTime == null;
+      var noEndTime = this.endTime == "" || this.endTime == null;
+
+      if (noStartTime && noEndTime) {
+        this.$message({
+          message: "请先选择要查看的时间",
+          type: "warning"
+        });
+        return false;
+      } else if (!noStartTime && noEndTime) {
+        this.loadHeatMap(this.startTime);
+        return false;
+      } else if (noStartTime && !noEndTime) {
+        this.loadHeatMap(this.endTime);
+        return false;
+      } else {
+        // 有开始时间和结束时间
+        if (this.startTime == this.endTime) {
+          this.loadHeatMap(this.startTime);
+          return false;
+        } else {
+          var start = new Date(this.startTime.replace("-", "/"));
+          var end = new Date(this.endTime.replace("-", "/"));
+
+          if (start > end) {
+            this.$message({
+              message: "开始时间不能大于结束时间",
+              type: "warning"
+            });
+            return false;
+          } else {
+            switch (this.timeType) {
+              case "year":
+                var year1 = parseInt(this.startTime.slice(0, 4));
+                var year2 = parseInt(this.endTime.slice(0, 4));
+                var temYears = [];
+                var temYears1 = [];
+                var intervalYear = year2 - year1 + 1;
+                for (var i = 0; i < intervalYear; i++) {
+                  var tempYear = year1 + i;
+                  temYears.push(tempYear);
+                  if (i != intervalYear - 1) {
+                    temYears1.push(tempYear);
+                  }
+                }
+                this.timeArr = temYears;
+                this.timeArr1 = temYears1;
+                break;
+              case "month":
+                this.timeArr = this.getMonthBetween(
+                  this.startTime,
+                  this.endTime
+                );
+                var tems = [];
+                for (var i = 0; i < this.timeArr.length - 1; i++) {
+                  tems.push(this.timeArr[i]);
+                }
+                this.timeArr1 = tems;
+                break;
+              case "date":
+                this.timeArr = this.getdiffdate(this.startTime, this.endTime);
+                var tems = [];
+                for (var i = 0; i < this.timeArr.length - 1; i++) {
+                  tems.push(this.timeArr[i]);
+                }
+                this.timeArr1 = tems;
+                break;
+            }
+          }
+        }
+        this.$nextTick(function() {
+          this.createPlayBar();
+        });
+        return true;
+      }
+    },
+    // 获取两个日期中所有的月份
+    getMonthBetween: function(start, end) {
+      var result = [];
+      var s = start.split("-");
+      var e = end.split("-");
+      var min = new Date();
+      var max = new Date();
+      min.setFullYear(s[0], s[1]);
+      max.setFullYear(e[0], e[1]);
+      // console.log(e[0] + "---- " + e[1]);
+      var curr = min;
+      while (curr <= max) {
+        var month = curr.getMonth();
+        var str = curr.getFullYear() + "-" + month;
+        var s = curr.getFullYear() + "-0";
+        if (str == s) {
+          str = curr.getFullYear() - 1 + "-12";
+        }
+        result.push(str);
+        curr.setMonth(month + 1);
+      }
+      return result;
+    },
+    // 获取两个日期间的所有日期
+    getdiffdate: function(startTime, endTime) {
+      //初始化日期列表，数组
+      var diffdate = new Array();
+      var i = 0;
+      //开始日期小于等于结束日期,并循环
+      while (startTime <= endTime) {
+        var str1 = startTime;
+        var year = startTime.slice(0, 4);
+        var month = startTime.slice(5, 7);
+        var day = startTime.slice(8, 10);
+
+        diffdate[i] = year + "-" + parseInt(month) + "-" + parseInt(day);
+
+        //获取开始日期时间戳
+        var stime_ts = new Date(startTime).getTime();
+
+        //增加一天时间戳后的日期
+        var next_date = stime_ts + 24 * 60 * 60 * 1000;
+
+        //拼接年月日，这里的月份会返回（0-11），所以要+1
+        var next_dates_y = new Date(next_date).getFullYear() + "-";
+        var next_dates_m =
+          new Date(next_date).getMonth() + 1 < 10
+            ? "0" + (new Date(next_date).getMonth() + 1) + "-"
+            : new Date(next_date).getMonth() + 1 + "-";
+        var next_dates_d =
+          new Date(next_date).getDate() < 10
+            ? "0" + new Date(next_date).getDate()
+            : new Date(next_date).getDate();
+
+        startTime = next_dates_y + next_dates_m + next_dates_d;
+        //增加数组key
+        i++;
+      }
+      return diffdate;
+    },
+    // 播放按钮
+    playOrPauseEvent: function() {
+      var isContinue = this.timeLegalityVerfy();
+
+      if (!isContinue) {
+        return;
+      }
+
+      this.isPlay = !this.isPlay;
+      // 播放按钮
+      var playEle = document.getElementById("play-button");
+      playEle.className = this.isPlay ? "pause" : "play";
+
+      // 开始游标
+      var startTrangel = document.getElementById("startTrangel");
+      // 播放轴
+      var ulEle = document.getElementById("ulEle");
+      // 获取所有时间轴上的li
+      var liEles = ulEle.children;
+      // 进度条
+      var progressBar = document.getElementById("progress-bar");
+
+      startTrangel.timeArr = this.timeArr1;
+      startTrangel.timeArr2 = this.timeArr;
+
+      if (this.isPlay) {
+        //  初始剩余长度
+        var overLength = startTrangel.timeArr.length * 80;
+        // 标记滚动次数
+        startTrangel.flag = 1;
+
+        var flagLength =
+          startTrangel.timeArr.length < 6
+            ? startTrangel.timeArr.length * 80
+            : 480;
+        startTrangel.timeId = setInterval(function() {
+          // 根据时间轴的偏移量来获取当前索引
+          var totalOffset = startTrangel.offsetLeft + 8 - ulEle.offsetLeft;
+          var currentIndex = 0;
+          if (totalOffset % 80 == 0) {
+            currentIndex = totalOffset / 80;
+            // 获取时间参数
+            var time = startTrangel.timeArr[currentIndex];
+            updateHeatmap();
+          }
+
+          function updateHeatmap() {
+            // 隐藏数据列表和列表详情
+            Connector.$emit("isShowList", false);
+            Connector.$emit("isShowDetailList", false);
+
+            store.commit("selectTime", time);
+            // 加载选中时段的热力图
+            updateHeatMap();
+          }
+
+          if (flagLength - 8 - startTrangel.offsetLeft <= 2) {
+            // overLength -= 480;
+            overLength =
+              startTrangel.timeArr.length * 80 -
+              Math.abs(ulEle.offsetLeft) -
+              480;
+            if (overLength >= 480) {
+              ulEle.style.left = ulEle.offsetLeft - 480 + "px";
+              startTrangel.style.left = "-8px";
+              progressBar.style.width = "100%";
+              // 遍历所有时间bar,只显示当前这一个周期内的时间bar
+              for (var i = 0; i < liEles.length; i++) {
+                // 获取ulEle的滚动次数
+                startTrangel.flag = Math.abs(ulEle.offsetLeft) / 480;
+                var isShow =
+                  i - 6 * startTrangel.flag >= 0 &&
+                  i - 6 * startTrangel.flag < 6;
+                liEles[i].style.visibility = isShow ? "visible" : "hidden";
+              }
+              startTrangel.flag += 1;
+            } else if (overLength >= 80 && overLength < 480) {
+              ulEle.style.left = ulEle.offsetLeft - overLength + "px";
+              startTrangel.style.left = 480 - 8 - overLength + "px";
+              progressBar.style.width = overLength + "px";
+              // 遍历所有时间bar,只显示当前这一个周期内的时间bar
+              for (var i = 0; i < liEles.length; i++) {
+                var isShow =
+                  startTrangel.timeArr.length - 1 - i >= 0 &&
+                  startTrangel.timeArr.length - 1 - i < 6;
+                liEles[i].style.visibility = isShow ? "visible" : "hidden";
+              }
+            } else {
+              var time =
+                startTrangel.timeArr2[startTrangel.timeArr2.length - 1];
+              // 隐藏数据列表和列表详情
+              Connector.$emit("isShowList", false);
+              Connector.$emit("isShowDetailList", false);
+
+              store.commit("selectTime", time);
+              // 加载选中时段的热力图
+              updateHeatMap();
+              clearInterval(startTrangel.timeId);
+              // 一秒后回归至初始状态
+              startTrangel.timeId1 = setTimeout(function() {
+                store.commit("selectTime", "");
+                updateHeatMap();
+                startTrangel.style.left = "-8px";
+                progressBar.style.width =
+                  startTrangel.timeArr.length < 6
+                    ? startTrangel.timeArr.length * 80 + "px"
+                    : "480px";
+                ulEle.style.left = 0;
+                // 遍历所有时间bar,只显示当前这一个周期内的时间bar
+                var counts =
+                  startTrangel.timeArr.length >= 6
+                    ? 6
+                    : startTrangel.timeArr.length;
+                for (var i = 0; i < liEles.length; i++) {
+                  var isShow = i >= 0 && i < counts;
+                  liEles[i].style.visibility = isShow ? "visible" : "hidden";
+                }
+                playEle.className = "play";
+                this.isPlay = false;
+                // clearTimeout(startTrangel.timeId1);
+              }, 1000);
+            }
+          } else {
+            startTrangel.style.left = startTrangel.offsetLeft + 2 + "px";
+            progressBar.style.width = progressBar.offsetWidth - 2 + "px";
+          }
+        }, 100);
+      } else {
+        startTrangel.flag = -1;
+        clearInterval(startTrangel.timeId);
+      }
+    },
+
+    // 加载热力图
+    loadHeatMap: function(time) {
+      // 隐藏数据列表和列表详情
+      Connector.$emit("isShowList", false);
+      Connector.$emit("isShowDetailList", false);
+
+      store.commit("selectTime", time);
+      // 加载选中时段的热力图
+      updateHeatMap();
+    }
+  }
+};
+</script>
+
+<style>
+/* 设置日期选择器背景色 */
+.el-year-table td .cell,
+.el-month-table td .cell,
+.el-date-table th,
+.el-date-table td,
+.el-date-picker__header-label {
+  color: #ddd !important;
+}
+.el-picker-panel {
+  background: rgba(11, 33, 83, 0.8) !important;
+  border: 1px solid rgba(11, 33, 83, 0.8) !important;
+}
+.el-popper[x-placement^="top"] .popper__arrow {
+  border-top-color: rgba(11, 33, 83, 0.8);
+}
+.el-popper[x-placement^="top"] .popper__arrow::after {
+  border-top-color: rgba(11, 33, 83, 0.8);
+}
+.el-picker-panel__icon-btn {
+  color: #fff;
+}
+</style>
+
+<style scoped>
+.timeLine {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: url("../../assets/images/homePage/timebg.png") no-repeat;
+  width: 980px;
+  /* max-height: 60px; */
+  /* width: 68%; */
+  height: 81px;
+  background-size: 100% 100%;
+  padding: 7px 20px;
+  box-sizing: border-box;
+  /* display: flex; */
+  /* align-items: center; */
+}
+/* 时间单位 */
+.time-unit span {
+  color: #fff;
+  font-size: 13px;
+  margin-right: 10px;
+}
+.time-unit input {
+  margin-right: 5px;
+}
+/* 日期选择器 */
+.timeLine >>> .el-date-editor.el-input,
+.el-date-editor.el-input__inner {
+  width: 150px !important;
+  margin: 6px 10px !important;
+  background: transparent !important;
+}
+.timeLine >>> .el-input__inner {
+  background-color: transparent !important;
+  border: 1.5px solid rgb(67, 91, 138) !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  /* position: relative !important; */
+}
+.timeLine >>> .el-input__icon {
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+#play-button {
+  width: 30px;
+  height: 30px;
+  margin-right: 30px;
+  margin-left: 10px;
+  display: inline-block;
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  z-index: 9999;
+}
+.play {
+  background: url("../../assets/images/homePage/playTime.png") no-repeat center;
+}
+.pause {
+  background: url("../../assets/images/homePage/pauseTime.png") no-repeat center;
+}
+/* 播放条 */
+#play-bar {
+  width: 480px;
+  height: 40px;
+  position: relative;
+  white-space: nowrap;
+  margin-left: 90px;
+  /* background-color: pink; */
+}
+#play-bar li {
+  width: 80px;
+  height: 4px;
+  margin-top: 18px;
+  background: #fff;
+  display: inline-block;
+  position: relative;
+}
+/* 进度条 */
+#progress-bar {
+  height: 4px;
+  background: greenyellow;
+  position: absolute;
+  right: 0;
+  top: 18px;
+}
+/* 刻度线 */
+#play-bar li .cirlceDot {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  border-radius: 3px;
+  background: #0fc;
+  position: absolute;
+  left: -4px;
+  bottom: -2px;
+  z-index: 10;
+}
+#play-bar li .lastDot {
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  border-radius: 3px;
+  background: #0dd;
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  z-index: 10;
+}
+/* 刻度值 */
+.scale-value {
+  font-size: 12px;
+  color: #fff;
+  position: absolute;
+  left: 0;
+  bottom: 10px;
+  transform: translateX(-50%);
+}
+.max-scale-value {
+  font-size: 12px;
+  color: #fff;
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  transform: translateX(50%);
+}
+/* 游标 */
+.trangel {
+  width: 16px;
+  height: 11px;
+  display: inline-block;
+  background: url("../../assets/images/homePage/trangel.png");
+}
+#startTrangel {
+  position: absolute;
+  left: -8px;
+  bottom: 2px;
+}
+/* #endTrangel {
+  position: absolute;
+  right: -8px;
+  bottom: 2px;
+} */
+</style>
+
+<style>
+.el-year-table td.disabled .cell,
+.el-month-table td.disabled .cell,
+.el-date-table td.disabled div {
+  background-color: rgba(255, 0, 0, 0) !important;
+  color: #999 !important;
+}
+</style>

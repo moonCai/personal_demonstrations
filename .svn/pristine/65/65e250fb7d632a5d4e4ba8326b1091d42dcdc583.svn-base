@@ -1,0 +1,123 @@
+/**
+ *  监听地图移动结束
+ * */
+export function mapMoveEnd(targetViewer) {
+
+    targetViewer.scene.camera.moveEnd.addEventListener(function () {
+        let cartographic = targetViewer.scene.globe.ellipsoid.cartesianToCartographic(
+            targetViewer.camera.position
+        );
+
+        //将弧度转为度的十进制度表示
+        let longitudeString = Cesium.Math.toDegrees(
+            cartographic.longitude
+        );
+        let latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+        let height = Math.ceil(targetViewer.camera.positionCartographic.height);
+
+        let rectangle = targetViewer.camera.computeViewRectangle();
+        let west = (rectangle.west / Math.PI) * 180;
+        let north = (rectangle.north / Math.PI) * 180;
+        let east = (rectangle.east / Math.PI) * 180;
+        let south = (rectangle.south / Math.PI) * 180;
+
+        let bounds = {
+            southwest: {
+                lng: west,
+                lat: south
+            },
+            northeast: {
+                lng: east,
+                lat: north
+            }
+        };
+
+        console.log(
+            "照相机: ",
+            bounds,
+            longitudeString,
+            latitudeString,
+            height
+        );
+        console.log("heading: ", targetViewer.scene.camera.heading);
+        console.log("pitch: ", targetViewer.scene.camera.pitch);
+        console.log("roll: ", targetViewer.scene.camera.roll);
+    });
+}
+
+
+/**
+ * 获取三维场景下可视区域(四顶点均在屏幕上)
+ *  */
+export function getVisibleRegion(targetViewer) {
+    if (targetViewer.scene.mode == Cesium.SceneMode.SCENE2D) {
+        // 范围对象
+        let extent = {};
+        // 得到当前三维场景
+        let scene = targetViewer.scene;
+        // 得到当前三维场景的椭球体
+        let ellipsoid = scene.globe.ellipsoid;
+        let canvas = scene.canvas;
+        // canvas左上角
+        let car3_lt = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(0, 0), ellipsoid);
+        // canvas右下角
+        let car3_rb = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(canvas.width, canvas.height), ellipsoid);
+        // 当canvas左上角和右下角全部在椭球体上
+        if (car3_lt && car3_rb) {
+            let carto_lt = ellipsoid.cartesianToCartographic(car3_lt);
+            let carto_rb = ellipsoid.cartesianToCartographic(car3_rb);
+            extent.xmin = Cesium.Math.toDegrees(carto_lt.longitude);
+            extent.ymax = Cesium.Math.toDegrees(carto_lt.latitude);
+            extent.xmax = Cesium.Math.toDegrees(carto_rb.longitude);
+            extent.ymin = Cesium.Math.toDegrees(carto_rb.latitude);
+        } else if (!car3_lt && car3_rb) {
+            // 当canvas左上角不在但右下角在椭球体上
+            let car3_lt2 = null;
+            let yIndex = 0;
+            do {
+                // 这里每次10像素递加，一是10像素相差不大，二是为了提高程序运行效率
+                yIndex <= canvas.height ? yIndex += 10 : canvas.height;
+                car3_lt2 = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(0, yIndex), ellipsoid);
+            } while (!car3_lt2);
+            let carto_lt2 = ellipsoid.cartesianToCartographic(car3_lt2);
+            let carto_rb2 = ellipsoid.cartesianToCartographic(car3_rb);
+            extent.xmin = Cesium.Math.toDegrees(carto_lt2.longitude);
+            extent.ymax = Cesium.Math.toDegrees(carto_lt2.latitude);
+            extent.xmax = Cesium.Math.toDegrees(carto_rb2.longitude);
+            extent.ymin = Cesium.Math.toDegrees(carto_rb2.latitude);
+        }
+        // 获取高度
+        extent.height = Math.ceil(targetViewer.camera.positionCartographic.height);
+        // console.log("可视区域：", extent.xmin, extent.xmax, extent.ymin, extent.ymax, extent.height);
+        return extent;
+    } else if (targetViewer.scene.mode == Cesium.SceneMode.SCENE3D) {
+        let extent = {};
+        let field_view = targetViewer.camera.computeViewRectangle();
+        if (field_view != null) {
+            extent.xmin = Cesium.Math.toDegrees(field_view.west);
+            extent.xmax = Cesium.Math.toDegrees(field_view.east);
+            extent.ymin = Cesium.Math.toDegrees(field_view.south);
+            extent.ymax = Cesium.Math.toDegrees(field_view.north);
+        }
+        if (extent.xmin == -180 || extent.xmin == undefined) {
+            extent.xmin = -179;
+        }
+        if (extent.xmax == 180 || extent.xmax == undefined) {
+            extent.xmax = 179;
+        }
+        if (extent.ymin == -90 || extent.ymin == undefined) {
+            extent.ymin = -89;
+        }
+        if (extent.ymax == 90 || extent.ymax == undefined) {
+            extent.ymax = 89;
+        }
+
+        extent.height = Math.ceil(targetViewer.camera.positionCartographic.height);
+        // console.log("可视区域：", extent.xmin, extent.xmax, extent.ymin, extent.ymax, extent.height);
+        return extent;
+    }
+}
+
+
+
+

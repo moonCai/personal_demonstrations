@@ -1,0 +1,86 @@
+<template>
+  <!-- map -->
+  <div class id="hot-cesium"></div>
+</template>
+
+<script>
+import { defaultInitCesium } from "assets/js/MapInit";
+import { server } from "request/api";
+import { GMTToStr } from "assets/js/Time";
+
+export default {
+  data() {
+    return {
+      trackViewer: null,
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+    };
+  },
+  created() {},
+  mounted() {
+    this.initScene();
+  },
+  methods: {
+    // 场景初始化
+    initScene() {
+      this.trackViewer = defaultInitCesium("hot-cesium", "tianDitu", false);
+
+      // this.trackViewer.camera.setView({
+      //   destination: Cesium.Rectangle.fromDegrees(
+      //     this.visibleRect[0],
+      //     this.visibleRect[1],
+      //     this.visibleRect[2],
+      //     this.visibleRect[3]
+      //   ),
+      // });
+    },
+  },
+  beforeDestroy() {
+    window._axiosPromiseArr.forEach((ele, index) => {
+      // 路由跳转之前，清空（终止）上一个页面正在请求的内容
+      ele.cancel();
+      // 清空请求的参数 清空请求的参数
+      delete window._axiosPromiseArr[index];
+    });
+
+    this.trackViewer && this.trackViewer.destroy();
+  },
+};
+</script>
+
+<style scoped>
+#hot-cesium {
+  position: absolute;
+  top: 70px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(1, 115, 166, 1);
+}
+</style>
+
+<style>
+.el-cascader-menu {
+  border-right: 1px solid rgba(1, 115, 166, 1);
+}
+.el-cascader__dropdown {
+  border: 1px solid rgba(1, 115, 166, 1);
+}
+.el-cascader-node:not(.is-disabled):focus,
+.el-cascader-node:not(.is-disabled):hover {
+  background: rgba(0, 150, 197, 1);
+}
+.el-cascader-node__label {
+  color: #fff;
+  font-size: 12px;
+}
+.el-icon-arrow-right:before {
+  content: "\E6E0";
+  color: #fff;
+}
+</style>
+
+

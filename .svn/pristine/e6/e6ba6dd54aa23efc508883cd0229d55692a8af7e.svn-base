@@ -1,0 +1,142 @@
+<template>
+  <div id="dimming" class="date-picker-box">
+    <div id="time">
+      <div class="title">查找历史视频</div>
+      <img
+        id="close-senior"
+        @click="closeSeniorQuery"
+        src="../../assets/images/queryInfo/clear-noti.png"
+      />
+      <div class="time-container">
+        <span>开始时间</span>
+        <el-date-picker
+          :popper-append-to-body="false"
+          v-model="startTime"
+          :picker-options="pickerOptions"
+          type="datetime"
+          placeholder="开始时间"
+        ></el-date-picker>
+      </div>
+      <div class="time-container">
+        <span>结束时间</span>
+        <el-date-picker
+          :popper-append-to-body="false"
+          v-model="endTime"
+          :picker-options="pickerOptions"
+          type="datetime"
+          placeholder="结束时间"
+        ></el-date-picker>
+      </div>
+      <div id="handle-senior" style="margin-top: 20px">
+        <el-button type="primary" @click="confirmSeniorQuery">确 定</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      startTime: "",
+      endTime: "",
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        }
+      }
+    };
+  },
+  methods: {
+    // 取消高级查询
+    closeSeniorQuery() {
+      this.$emit("showSenior", false);
+    },
+
+    // 确认高级查询
+    confirmSeniorQuery() {
+      if (this.startTime == "") {
+        this.$message({
+          message: "请选择开始时间",
+          type: "warning"
+        });
+        return;
+      }
+
+      if (this.endTime == "") {
+        this.$message({
+          message: "请选择结束时间",
+          type: "warning"
+        });
+        return;
+      }
+
+      let time1 = new Date(this.startTime);
+      let time2 = new Date(this.endTime);
+
+      if (time1 > time2) {
+        this.$message({
+          message: "开始时间不能大于结束时间",
+          type: "warning"
+        });
+        return;
+      }
+      
+      this.$emit("time", [this.startTime, this.endTime]);
+    }
+  }
+};
+</script>
+
+<style scoped>
+#dimming {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 3000;
+}
+
+#time {
+  width: 400px;
+  height: 200px;
+  padding: 10px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(4, 24, 35, 0.8);
+  border: 1px solid rgba(0, 143, 189, 0.7);
+}
+#close-senior {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  cursor: pointer;
+}
+.title {
+  height: 20px;
+  line-height: 20px;
+  padding: 10px;
+  text-align: left;
+  color: #fff;
+  font-size: 16px;
+  box-sizing: content-box;
+}
+.time-container {
+  height: 40px;
+  line-height: 40px;
+}
+.time-container span {
+  color: #ddd;
+  font-size: 13px;
+  margin-right: 15px;
+}
+.el-button--primary {
+  width: 110px;
+  background: rgba(0, 143, 189, 0.7);
+  border: rgba(0, 143, 189, 0.7);
+}
+</style>

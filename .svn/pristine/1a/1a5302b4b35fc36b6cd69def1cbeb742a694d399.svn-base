@@ -1,0 +1,57 @@
+/**
+ * 经纬度转化为世界坐标 
+ */
+export function degrees_to_cartesian(targetViewer, longitude, latitude, height) {
+  let ellipsoid = targetViewer.scene.globe.ellipsoid;
+
+  let cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, height, ellipsoid);
+
+  console.log("世界坐标：", cartesian3);
+}
+
+
+/**
+ * 笛卡尔坐标系转WGS84坐标系
+ * @param cartesian 笛卡尔坐标
+ *  */
+export function cartesian3_to_WGS84(cartesian) {
+  // 将笛卡尔坐标转化为地理坐标
+  let cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+
+  // 将地理坐标转化为WGS84坐标
+  let latitude = Cesium.Math.toDegrees(cartographic.latitude);
+  let longitude = Cesium.Math.toDegrees(cartographic.longitude);
+  let alt = cartographic.height;
+
+  return {
+    lat: latitude,
+    lng: longitude,
+    alt: alt
+  }
+}
+
+
+/**
+ * 屏幕点转化为wgs84坐标点
+ * @param {} point  屏幕点
+ * @param {*} targetViewer 地图
+ */
+export function screenPointToWGS8(point, targetViewer) {
+  //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+  let cartesian = targetViewer.camera.pickEllipsoid(point, targetViewer.scene.ellipsoid);
+
+  if (cartesian) {
+    // 将笛卡尔坐标转换为地理坐标(π)
+    let cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+
+    //将弧度转为度的十进制度表示
+    let longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+    let latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+    let height = cartographic.height;
+
+    // 获取相机高度
+    // var height = Math.ceil(viewer.camera.positionCartographic.height);
+
+    console.log("lng", longitudeString, "lat", latitudeString, "height", height, cartographic);
+  }
+}

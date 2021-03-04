@@ -1,0 +1,37 @@
+import { defaultInitCesium } from "assets/js/cesium/MapInit";
+
+export const mixin = {
+  data() {
+    return {
+      hubeiGeoRect: [
+        113.15906303451439,
+        29.93802544460981,
+        115.43153969272025,
+        31.38353006245101
+      ]
+    }
+  },
+  methods: {
+    // 创建地图
+    initMapViewer() {
+      this.mapViewer = defaultInitCesium("cesium-container", "offline", true);
+
+      this.mapViewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(
+          this.hubeiGeoRect[0],
+          this.hubeiGeoRect[1],
+          this.hubeiGeoRect[2],
+          this.hubeiGeoRect[3]
+        ),
+      });
+
+      this.mapViewer.dataSources.add(
+        Cesium.GeoJsonDataSource.load("static/wuhan.geojson", {
+          stroke: Cesium.Color.SKYBLUE,
+          fill: Cesium.Color.SKYBLUE.withAlpha(0),
+          strokeWidth: 1,
+        })
+      );
+    },
+  }
+}

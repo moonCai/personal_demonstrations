@@ -1,0 +1,126 @@
+<template>
+  <div class id="detail-container">
+    <div class="bar">
+      <span class="track_id">待筛查人员：{{ trackId }}</span>
+      <span id="close-detail" @click="closeEvent"></span>
+    </div>
+
+    <div class="table-container">
+      <el-table :data="tableData" height="100%" style="width: 330px">
+        <el-table-column type="index" label="序号" width="60"></el-table-column>
+        <el-table-column prop="date2" label="时刻"></el-table-column>
+        <el-table-column label="操作" width="80">
+          <template slot-scope="scope">
+            <el-button @click="handleClick(scope.row)" type="text" size="small"
+              >定位</el-button
+            >
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      trackId: "",
+      tableData: [],
+    };
+  },
+  props: ["list"],
+  watch: {
+    list(newVal, oldVal) {
+      this.handleData();
+    },
+  },
+  created() {
+    this.handleData();
+  },
+  methods: {
+    // 定位
+    handleClick(row) {
+      this.$emit("locationGrid", row);
+    },
+
+    // 关闭窗口
+    closeEvent() {
+      this.$emit("displayDetail", false);
+    },
+
+    // 处理数据
+    handleData() {
+      this.trackId = this.list.by_track_list[0].track_id;
+
+      this.tableData = this.list.by_track_list.map((trackList, i) => {
+        return {
+          floorHeight_A: this.list.track_list[i].floor_height,
+          GeoNum_A: this.list.track_list[i].geo_num,
+          date1: this.list.track_list[i].track_time,
+          track_A: this.list.track_list[i].track_id,
+          boundary_A: this.list.track_list[i].boundary,
+          floorHeight_B: this.list.track_list[i].floor_height,
+          GeoNum_B: trackList.geo_num,
+          date2: trackList.track_time,
+          track_B: trackList.track_id,
+          boundary_B: trackList.boundary,
+        };
+      });
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+#detail-container {
+  width: 350px;
+  height: 300px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10000;
+  background: rgba(4, 24, 35, 1);
+  border: 1px solid #008ec0;
+  border-radius: 3px;
+
+  .bar {
+    height: 40px;
+    line-height: 40px;
+    border-bottom: 1px solid #008ec0;
+
+    .track_id,
+    .ratio {
+      float: left;
+      padding-left: 15px;
+      font-size: 15px;
+      color: #63d9ff;
+    }
+
+    #close-detail {
+      width: 15px;
+      height: 15px;
+      background: url("~assets/images/common/close_15.png") no-repeat center /
+        cover;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+    }
+  }
+
+  .table-container {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  >>> .el-table {
+    left: 10px;
+    width: 300px;
+    background: transparent;
+  }
+}
+</style>

@@ -1,0 +1,42 @@
+<template>
+  <div class="table-wrapper" v-if="list.length > 0">
+    <el-table :data="list" style="width: 94%" height="200">
+      <el-table-column prop="contract_track_id" label="密切接触ID" width="180">
+      </el-table-column>
+      <el-table-column prop="is_local" label="人员类别" width="180">
+      </el-table-column>
+      <el-table-column prop="count" label="点位数量"> </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {};
+  },
+  props: ["list"],
+  watch: {
+    list(newVal, oldVal) {
+      if (newVal.length < 1) return;
+
+      newVal.forEach((info) => {
+        // 1: 本地人员  0:外来人员
+        info.is_local = info.is_local ? "本地人员" : "外来人员";
+      });
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+.table-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+
+  >>> .el-table {
+    margin-left: 3%;
+  }
+}
+</style>

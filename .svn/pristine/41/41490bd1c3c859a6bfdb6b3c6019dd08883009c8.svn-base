@@ -1,0 +1,133 @@
+<template>
+  <div id="model-container">
+    <span>三维模型</span>
+
+    <div id="data-type-menu">
+      <div v-for="(levelInfo, index) in modelInfos" :key="index">
+        <input
+          v-model="levelInfo.isShow"
+          @change="showModelEvent(levelInfo, index)"
+          type="checkbox"
+        />
+        <span>{{ levelInfo.modelLevel }}</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { loadModel } from "assets/js/MapEvent.js";
+import { Message } from "element-ui";
+import { server } from "request/api.js";
+
+export default {
+  data() {
+    return {
+      modelInfos: [],
+      models: []
+    };
+  },
+  props: ["viewer"],
+  created() {
+    this.loadModelsInfo();
+  },
+  methods: {
+    // 控制不同层模型显示与隐藏
+    showModelEvent(levelInfo, index) {
+      if (this.models[index].length == 0) {
+        let childrenModelList = JSON.parse(levelInfo.childrenModels);
+
+        childrenModelList.forEach(modelInfo => {
+          let model = loadModel(
+            this.viewer,
+            levelInfo.modelLevel,
+            modelInfo.modelName,
+            levelInfo.url_pre,
+            modelInfo.location[0],
+            modelInfo.location[1],
+            modelInfo.location[2]
+          );
+          this.models[index].push(model);
+        });
+
+        return;
+      }
+
+      this.models[index].forEach(model => (model.show = levelInfo.isShow));
+    },
+
+    // 加载三维模型
+    loadModelsInfo() {
+      server.getModelsInfo().then(response => {
+        if (response.server_status != 200) return;
+
+        this.modelInfos = response.data;
+        this.modelInfos.forEach(levelInfo => {
+          levelInfo.isShow = JSON.parse(levelInfo.isShow);
+          this.models.push([]);
+        });
+
+        $("#data-type-menu").css({
+          height: `${30 * this.modelInfos.length}px`
+        });
+      });
+    }
+  },
+  destroyed() {}
+};
+</script>
+
+<style scoped>
+#model-container {
+  width: 120px;
+  height: 30px;
+  line-height: 30px;
+  border: 1px solid rgba(0, 200, 249, 0.7);
+  position: absolute;
+  top: 50%;
+  right: 120px;
+  transform: translateY(-50%);
+}
+
+#model-container > span {
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  font-size: 14px;
+}
+
+#model-container #data-type-menu {
+  display: none;
+}
+
+#model-container:hover {
+  background: rgba(0, 77, 102, 1);
+}
+
+#model-container:hover #data-type-menu {
+  background: rgba(0, 77, 102, 1);
+  border: 1px solid rgba(0, 200, 249, 0.7);
+  display: block;
+}
+#model-container:hover #data-type-menu > div {
+  height: 30px;
+  line-height: 30px;
+  position: relative;
+}
+
+#model-container input {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+}
+
+#model-container:hover #data-type-menu span {
+  display: inline-block;
+  width: 80px;
+  text-align: left;
+  font-size: 13px;
+  color: #fff;
+  margin-left: 40px;
+}
+</style>

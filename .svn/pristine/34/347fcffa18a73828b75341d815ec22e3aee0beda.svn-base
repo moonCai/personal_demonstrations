@@ -1,0 +1,40 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+const Login = () => import("pages/login/Login")
+const BuildTrack = () => import("pages/buildTrack/BuildTrack")
+const ParterAnalysis = () => import("pages/parterAnalysis/ParterAnalysis")
+const CloseContact = () => import("pages/closeContact/CloseContact")
+
+Vue.use(Router)
+
+let routes = [
+  {
+    path: '/',
+    redirect: '/login',
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
+  },
+  {
+    path: '/buildTrack',
+    name: 'buildTrack',
+    component: BuildTrack
+  },
+  {
+    path: '/parterAnalysis',
+    name: 'parterAnalysis',
+    component: ParterAnalysis
+  },
+  {
+    path: '/closeContact',
+    name: 'closeContact',
+    component: CloseContact
+  }
+];
+
+export default new Router({
+  routes
+})

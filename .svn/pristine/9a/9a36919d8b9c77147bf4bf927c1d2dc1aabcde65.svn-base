@@ -1,0 +1,134 @@
+#right-side {
+  width: 340px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(3, 195, 255, 0.7);
+}
+
+#right-side .title {
+  height: 40px;
+  line-height: 40px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  box-shadow: 0 1px 5px rgba(3, 195, 255, 0.7);
+  border-bottom: 1px solid rgba(3, 195, 255, 0.7);
+  background: linear-gradient(to bottom,
+      rgb(3, 195, 255, 0.7) 0%,
+      rgb(9, 19, 23) 100%);
+}
+
+#right-side>>>.el-form-item__content {
+  text-align: left;
+}
+
+#right-side>>>.el-form-item__label {
+  color: #fff;
+}
+
+#right-side>>>.el-form-item--mini.el-form-item,
+#right-side>>>.el-form-item--small.el-form-item {
+  margin-bottom: 15px;
+}
+
+#right-side>>>.button .el-form-item__content {
+  margin-left: 0 !important;
+  text-align: center !important;
+}
+
+#right-side>>>.el-input__inner {
+  background: rgba(5, 40, 55, 1);
+  border: 1px solid rgba(1, 115, 166, 1);
+  color: #fff;
+  width: 232px;
+}
+
+#right-side>>>.el-button {
+  width: 70px;
+  height: 26px;
+  border: rgba(1, 115, 166, 1);
+  background: rgba(1, 115, 166, 1);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+#right-side .container3 .el-form-item--mini.el-form-item,
+#right-side .container3 .el-form-item--small.el-form-item {
+  margin-bottom: 0;
+}
+
+#right-side>>>.el-button>span {
+  display: inline-block;
+  width: 70px;
+  height: 26px;
+  line-height: 26px;
+}
+
+#right-side>>>.el-button--primary.is-disabled,
+#right-side>>>.el-button--primary.is-disabled:active,
+#right-side>>>.el-button--primary.is-disabled:focus,
+#right-side>>>.el-button--primary.is-disabled:hover {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#right-side>>>.el-button--small {
+  padding: 0;
+}
+
+#right-side .container2>>>.el-input__inner {
+  width: 202px;
+}
+
+#right-side .condition {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.el-select-dropdown.is-multiple .el-select-dropdown__item.selected {
+  color: #fff;
+  background-color: rgba(0, 185, 197, 1);
+  border: 1px solid rgba(3, 195, 255, 0.7);
+}
+
+.el-select-dropdown__item.is-disabled:hover {
+  background: transparent;
+  border: transparent;
+}
+
+#right-side>>>.el-tag.el-tag--info {
+  background-color: rgba(0, 185, 197, 1);
+  border-color: rgba(0, 185, 197, 1);
+  color: #fff;
+}
+
+#right-side>>>.el-tag.el-tag--info .el-tag__close {
+  color: #666;
+}
+
+#right-side>>>.el-select .el-tag__close.el-icon-close {
+  background-color: #fff;
+}
+
+#right-side>>>.el-input.is-disabled .el-input__inner {
+  background: rgba(5, 40, 55, 0.5);
+  border: 1px solid rgba(1, 115, 166, 0.5);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#right-side>>>input[type="number"]::-webkit-textfield-decoration-container {
+  background-color: transparent;
+}
+
+#right-side>>>input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+#right-side>>>input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}

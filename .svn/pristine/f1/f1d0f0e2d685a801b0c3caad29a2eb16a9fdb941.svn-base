@@ -1,0 +1,629 @@
+<template>
+  <div id="screening-container">
+    <!-- content start -->
+    <div class="content-container">
+      <!-- map -->
+      <div class id="cesium-container">
+        <!-- 详情列表 -->
+        <detail-list
+          v-if="showDetail"
+          @displayDetail="displayDetailEvent"
+          @locationGrid="locationEvent"
+          :list="detailData"
+        ></detail-list>
+
+        <!-- 图例 -->
+        <div class="lengend">
+          <div class="item">
+            <span class="lengend-color red"></span>
+            <span class="lengend-item">确诊人员</span>
+          </div>
+          <div class="item">
+            <span class="lengend-color yellow"></span>
+            <span class="lengend-item">密切接触者</span>
+          </div>
+        </div>
+      </div>
+
+      <div class id="right-side">
+        <div class="container1">
+          <div class="title">查询参数</div>
+          <div class="condition">
+            <el-form
+              :model="ruleForm"
+              :rules="rules"
+              ref="ruleForm"
+              label-width="110px"
+              class="demo-ruleForm"
+            >
+              <!-- TrackID A -->
+              <el-form-item label="确诊人员" prop="trackIdA">
+                <el-input
+                  v-model="ruleForm.trackIdA"
+                  @change="finishIdInputEvent('trackA', $event)"
+                ></el-input>
+              </el-form-item>
+
+              <!-- TrackID B -->
+              <el-form-item label="待筛查人员" prop="trackIdB">
+                <el-input
+                  v-model="ruleForm.trackIdB"
+                  @change="finishIdInputEvent('trackB', $event)"
+                ></el-input>
+              </el-form-item>
+
+              <!-- 开始时间 -->
+              <el-form-item prop="startTime" label="开始时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择开始时间"
+                  v-model="ruleForm.startTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+
+              <!-- 结束时间 -->
+              <el-form-item prop="endTime" label="结束时间" required>
+                <el-date-picker
+                  type="datetime"
+                  placeholder="选择结束时间"
+                  v-model="ruleForm.endTime"
+                  :picker-options="pickerOptions"
+                ></el-date-picker>
+              </el-form-item>
+
+              <!-- 距离阈值 -->
+              <el-form-item label="距离阈值(格)" prop="distance">
+                <el-select
+                  v-model="ruleForm.distance"
+                  placeholder="请选择距离阈值"
+                >
+                  <el-option label="1" value="1"></el-option>
+                  <el-option label="2" value="2"></el-option>
+                  <el-option label="3" value="3"></el-option>
+                </el-select>
+              </el-form-item>
+
+              <!-- 时间阈值 -->
+              <el-form-item label="时间阈值(s)" prop="time">
+                <el-input
+                  v-model="ruleForm.time"
+                  type="number"
+                  min="0"
+                  v-enter-number
+                ></el-input>
+              </el-form-item>
+
+              <!-- 重置 查询 -->
+              <el-form-item class="button">
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+                <el-button
+                  type="primary"
+                  :disabled="!(isTrackALegal && isTrackBLegal)"
+                  @click="submitForm('ruleForm')"
+                  >查询</el-button
+                >
+              </el-form-item>
+            </el-form>
+          </div>
+
+          <div class="" id="result-container">
+            <contact-list
+              v-if="showContact"
+              :data="contactData"
+              @detailId="checkDetailEvent"
+              @displayContact="displayContactEvent"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- content end -->
+  </div>
+</template>
+
+<script>
+import { server } from "request/api";
+import { GMTToTimeStr } from "assets/js/Time";
+import {
+  draw2dGridsPrimitives,
+  draw2dGridsWithOutlinePrimitives,
+} from "assets/js/cesium/DrawGrids";
+
+import { mixin, resetMapLocationMixin } from "assets/js/mixin/Mixin";
+
+import DetailList from "./childrenCompons/DetailList";
+import ContactList from "./childrenCompons/ContactList";
+
+export default {
+  data() {
+    return {
+      ruleForm: {
+        trackIdA: "",
+        trackIdB: "",
+        startTime: new Date() - 14 * 24 * 3600 * 1000,
+        endTime: new Date(),
+        distance: "",
+        time: "",
+      },
+      rules: {
+        trackIdA: [
+          { required: true, message: "请选择确诊人员", trigger: "change" },
+        ],
+        startTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择开始时间",
+            trigger: "change",
+          },
+        ],
+        endTime: [
+          {
+            type: "date",
+            required: true,
+            message: "请选择结束时间",
+            trigger: "change",
+          },
+        ],
+        distance: [
+          { required: true, message: "请选择距离阈值", trigger: "change" },
+        ],
+        time: [{ required: true, message: "请填写时间阈值", trigger: "blur" }],
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() > Date.now();
+        },
+      },
+      contactData: "",
+      detailData: "",
+      // 显示接触者列表
+      showContact: false,
+      // 显示详情列表
+      showDetail: false,
+      track_grid_primitives: null,
+      // 起点marker
+      startMarkerA: null,
+      startMarkerB: null,
+      // 终点marker
+      endMarkerA: null,
+      endMarkerB: null,
+      // 定位marker
+      markerA: null,
+      markerB: null,
+      // 默认距离id
+      defaultDistance: 0,
+      // 筛查密切接触者参数
+      contactFilterParams: {},
+      // 分析目标有效性
+      isTrackALegal: false,
+      // 待筛查人员有效性
+      isTrackBLegal: true,
+      // 查看详情参数
+      params: null,
+    };
+  },
+  mixins: [mixin, resetMapLocationMixin],
+  components: {
+    DetailList,
+    ContactList,
+  },
+  methods: {
+    // 初始化场景
+    initScene() {
+      this.initMapViewer();
+
+      this.track_grid_primitives = this.mapViewer.scene.primitives.add(
+        new Cesium.PrimitiveCollection()
+      );
+
+      this.mapMoveEndEvent();
+    },
+
+    // 地图移动结束
+    mapMoveEndEvent() {
+      this.mapViewer.scene.camera.moveEnd.addEventListener(() => {
+        if (!this.params) return;
+
+        this.params.map_height = Math.ceil(
+          this.mapViewer.camera.positionCartographic.height
+        );
+
+        this.loadDetailList(this.params);
+      });
+    },
+
+    // 验证人员id有效性
+    finishIdInputEvent(type, val) {
+      switch (type) {
+        case "trackA":
+          this.isTrackALegal = false;
+          this.vertifyTheLegalOfIds({ track_id_list: val }, "trackA");
+          break;
+        case "trackB":
+          if (val != "") {
+            this.isTrackBLegal = false;
+            this.vertifyTheLegalOfIds({ track_id_list: val }, "trackB");
+          } else {
+            this.isTrackBLegal = true;
+          }
+          break;
+      }
+    },
+
+    // 加载密切接触者列表
+    submitForm(formName) {
+      this.resetPageInfo();
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          // 校验开始时间是否小于结束时间
+          let startTime = this.ruleForm.startTime;
+          let endTime = this.ruleForm.endTime;
+
+          if (typeof startTime != "number") {
+            startTime = startTime.getTime();
+          }
+
+          if (typeof endTime != "number") {
+            endTime = endTime.getTime();
+          }
+
+          if (endTime - startTime < 0) {
+            this.$message({
+              type: "warning",
+              message: "开始时间必须小于结束时间",
+            });
+            return;
+          }
+
+          // 校验时间阈值
+          if (this.ruleForm.time < 0 || this.ruleForm.time > 3600) {
+            this.$message({
+              type: "warning",
+              message: "时间阈值在0-3600之间，请输入有效的时间阈值",
+            });
+            return false;
+          }
+
+          let distanceId = this.defaultDistance;
+
+          if (this.ruleForm.distance.indexOf("m") > -1) {
+            distanceId = this.defaultDistance;
+          } else {
+            distanceId = this.ruleForm.distance;
+          }
+
+          let params = {
+            diagnosis_track_id: this.ruleForm.trackIdA,
+            contract_track_id_list: this.ruleForm.trackIdB,
+            start_time: GMTToTimeStr(startTime),
+            end_time: GMTToTimeStr(endTime),
+            map_height: Math.ceil(
+              this.mapViewer.camera.positionCartographic.height
+            ),
+            buffer_dist: distanceId,
+            thre_time: this.ruleForm.time,
+          };
+          this.contactFilterParams = params;
+          this.loadContactList(params);
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+
+    resetForm(formName) {
+      this.$refs[formName].resetFields();
+      this.resetPageInfo();
+    },
+
+    // 重置页面信息
+    resetPageInfo() {
+      this.clearAllDrawInfos();
+
+      this.resetMapLocation();
+
+      this.showContact = false;
+      this.showDetail = false;
+
+      this.params = null;
+    },
+
+    // 清除所有绘制（网格 - 起始marker - 定位marker)
+    clearAllDrawInfos() {
+      this.track_grid_primitives.removeAll();
+      this.removeStartMarkersAndEndMarkers();
+      this.removeLocationMarkers();
+    },
+
+    // 移除起始marker
+    removeStartMarkersAndEndMarkers() {
+      this.startMarkerA && this.mapViewer.entities.remove(this.startMarkerA);
+      this.startMarkerB && this.mapViewer.entities.remove(this.startMarkerB);
+      this.endMarkerA && this.mapViewer.entities.remove(this.endMarkerA);
+      this.endMarkerB && this.mapViewer.entities.remove(this.endMarkerB);
+    },
+
+    // 移除定位marker
+    removeLocationMarkers() {
+      this.markerA && this.mapViewer.entities.remove(this.markerA);
+      this.markerB && this.mapViewer.entities.remove(this.markerB);
+    },
+
+    // 定位
+    locationEvent(row) {
+      this.removeLocationMarkers();
+
+      this.markerA = this.createMarker(row.boundary_A, 10, "location", "red");
+      this.markerB = this.createMarker(row.boundary_B, 11, "location", "green");
+    },
+
+    // 创建图标
+    createMarker(boundary, height, markerType, colorType) {
+      let marker = this.mapViewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(
+          (boundary[0] + boundary[2]) / 2,
+          (boundary[1] + boundary[3]) / 2,
+          height
+        ),
+        billboard: {
+          image: require(`../../../static/images/${markerType}_${colorType}.png`),
+          pixelOffset: new Cesium.Cartesian2(0, 0),
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          width: 40,
+          height: 45,
+        },
+      });
+
+      return marker;
+    },
+
+    // 查看详情
+    checkDetailEvent(trackId) {
+      this.showDetail = false;
+
+      this.removeLocationMarkers();
+
+      this.resetMapLocation();
+
+      this.params = {
+        diagnosis_track_id: this.contactFilterParams.diagnosis_track_id,
+        contract_track_id: trackId,
+        start_time: this.contactFilterParams.start_time,
+        end_time: this.contactFilterParams.end_time,
+        map_height: this.contactFilterParams.map_height,
+        buffer_dist: this.contactFilterParams.buffer_dist,
+        thre_time: this.contactFilterParams.thre_time,
+      };
+
+      this.loadDetailList(this.params);
+    },
+
+    // 关闭接触者列表
+    displayContactEvent(display) {
+      this.showContact = display;
+    },
+
+    // 关闭详情列表
+    displayDetailEvent(display) {
+      this.showDetail = display;
+    },
+
+    // 加载密切接触者详情
+    loadDetailList(params) {
+      this.detailData = [];
+
+      this.clearAllDrawInfos();
+
+      server.detailList(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        this.detailData = response.data;
+        this.showDetail = true;
+        let trackList = response.data.track_list;
+        let byTrackList = response.data.by_track_list;
+
+        // 绘制轨迹
+        draw2dGridsWithOutlinePrimitives(
+          trackList,
+          this.track_grid_primitives,
+          Cesium.Color.TOMATO.withAlpha(0.3),
+          Cesium.Color.TOMATO.withAlpha(0.6)
+        );
+
+        draw2dGridsWithOutlinePrimitives(
+          byTrackList,
+          this.track_grid_primitives,
+          Cesium.Color.fromRgba(0x4d5bd800),
+          Cesium.Color.fromRgba(0x995bd800)
+        );
+
+        // 添加轨迹起点 - 终点
+        this.startMarkerA = this.createMarker(
+          trackList[0].boundary,
+          8,
+          "start",
+          "red"
+        );
+        this.endMarkerA = this.createMarker(
+          trackList[trackList.length - 1].boundary,
+          8,
+          "end",
+          "red"
+        );
+
+        this.startMarkerB = this.createMarker(
+          byTrackList[0].boundary,
+          8,
+          "start",
+          "green"
+        );
+        this.endMarkerB = this.createMarker(
+          byTrackList[byTrackList.length - 1].boundary,
+          8,
+          "end",
+          "green"
+        );
+      });
+    },
+
+    // 验证人员id的有效性
+    vertifyTheLegalOfIds(params, type) {
+      server.vertifyIds(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        switch (type) {
+          case "trackA":
+            this.isTrackALegal = response.invalid_track_list.length == 0;
+            break;
+          case "trackB":
+            this.isTrackBLegal = response.invalid_track_list.length == 0;
+            break;
+        }
+
+        if (response.invalid_track_list.length > 0) {
+          this.$message({
+            type: "warning",
+            message: `无效人员: ${response.invalid_track_list.join(",")}`,
+          });
+        }
+      });
+    },
+
+    // 加载可能的密切接触者列表
+    loadContactList(params) {
+      server.contactList(params).then((response) => {
+        if (response.server_status != 200) return;
+
+        if ($.isEmptyObject(response.data)) {
+          this.$message({
+            type: "warning",
+            message: "当前查询条件下无密切接触人员",
+          });
+          return;
+        }
+
+        if (response.data.contract_list.length < 1) {
+          this.$message({
+            type: "warning",
+            message: "当前查询条件下无密切接触人员",
+          });
+          return;
+        }
+
+        this.contactData = response.data;
+        this.showContact = true;
+      });
+    },
+  }
+};
+</script>
+
+<style scoped lang="scss">
+@import url(../../assets/css/rightSide.css);
+
+#screening-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: black;
+
+  .content-container {
+    position: absolute;
+    top: 70px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    #cesium-container {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 365px;
+      bottom: 10px;
+      box-shadow: 0 0 5px 5px rgba(3, 195, 255, 0.7);
+      border: 1px solid rgba(3, 195, 255, 0.7);
+
+      .lengend {
+        width: 130px;
+        height: 70px;
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        z-index: 100;
+        border-radius: 5px;
+        background: rgb(9, 24, 34);
+        border: 1px solid rgb(88, 147, 181);
+        box-shadow: 0 10px 5px rgba(0, 0, 0, 0.4);
+
+        .item {
+          margin-top: 10px;
+          height: 20px;
+          line-height: 20px;
+          color: #fff;
+          font-size: 14px;
+          position: relative;
+
+          .lengend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background: cyan;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            &.red {
+              background: rgba(243, 83, 83, 1);
+            }
+
+            &.yellow {
+              background: rgba(0, 216, 91, 1);
+            }
+          }
+
+          .lengend-item {
+            position: absolute;
+            left: 35px;
+            top: 50%;
+            transform: translateY(-50%);
+          }
+        }
+      }
+    }
+
+    #right-side {
+      .container1 {
+        height: 395px;
+        border: 1px solid rgba(3, 195, 255, 0.7);
+        border-radius: 6px;
+      }
+      #result-container {
+        position: absolute;
+        top: 410px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+
+      >>> .el-select__tags {
+        min-height: 33px;
+        max-height: 77px;
+        overflow: scroll;
+      }
+
+      >>> .el-input__inner {
+        width: 215px;
+      }
+    }
+  }
+}
+</style>
+
+

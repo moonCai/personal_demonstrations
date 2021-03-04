@@ -1,0 +1,787 @@
+/**
+ * 加载模型
+ * @param mapViewer 要添加模型的地图
+ * */
+export function loadModel(mapViewer, fileName, modelName, gltfUrl, longitude, latitude, height) {
+    let position = Cesium.Cartesian3.fromDegrees(
+        longitude,
+        latitude,
+        height
+    );
+    let hpr = new Cesium.HeadingPitchRoll(
+        Cesium.Math.toRadians(176.45),
+        0,
+        0
+    );
+    let matrix = Cesium.Transforms.headingPitchRollToFixedFrame(
+        position,
+        hpr,
+        Cesium.Ellipsoid.WGS84,
+        Cesium.Transforms.eastNorthUpToFixedFrame,
+        new Cesium.Matrix4()
+    );
+
+    var modelEntity = Cesium.Model.fromGltf({
+        url: gltfUrl + fileName + '/' + modelName + ".gltf",
+        modelMatrix: matrix,
+        id: modelName
+    });
+    var building = mapViewer.scene.primitives.add(modelEntity);
+    Cesium.when(building.readyPromise)
+        .then(() => {
+            console.log(modelName + "模型加载成功");
+        })
+        .otherwise(function (error) {
+            console.log(modelName + "模型加载失败error: ", error);
+        });
+    return building;
+}
+
+/**
+ *  监听地图移动结束
+ * */
+export function mapMoveEnd(targetViewer) {
+
+    targetViewer.scene.camera.moveEnd.addEventListener(function () {
+        var cartographic = targetViewer.scene.globe.ellipsoid.cartesianToCartographic(
+            targetViewer.camera.position
+        );
+
+        //将弧度转为度的十进制度表示
+        var longitudeString = Cesium.Math.toDegrees(
+            cartographic.longitude
+        );
+        var latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+        var height = Math.ceil(targetViewer.camera.positionCartographic.height);
+
+        var rectangle = targetViewer.camera.computeViewRectangle();
+        var west = (rectangle.west / Math.PI) * 180;
+        var north = (rectangle.north / Math.PI) * 180;
+        var east = (rectangle.east / Math.PI) * 180;
+        var south = (rectangle.south / Math.PI) * 180;
+
+        var bounds = {
+            southwest: {
+                lng: west,
+                lat: south
+            },
+            northeast: {
+                lng: east,
+                lat: north
+            }
+        };
+
+        console.log(
+            "照相机: ",
+            bounds,
+            longitudeString,
+            latitudeString,
+            height
+        );
+        console.log("heading: ", targetViewer.scene.camera.heading);
+        console.log("pitch: ", targetViewer.scene.camera.pitch);
+        console.log("roll: ", targetViewer.scene.camera.roll);
+    });
+}
+
+export function cesiumScreenLeftClickEvent(targetViewer) {
+    //得到当前三维场景
+    var scene = targetViewer.scene;
+    //得到当前三维场景的椭球体
+    var ellipsoid = scene.globe.ellipsoid;
+    var entity = targetViewer.entities.add({
+        label: {
+            show: false
+        }
+    });
+
+    /**
+     * `cesium中常用的坐标有WGS84和笛卡尔空间坐标系. 通常, 
+     * 以经纬度来表示地点位置时用的是WGS84坐标, 
+     * 用笛卡尔空间坐标系来做空间位置变换.`
+     *  */
+    var handler = new Cesium.ScreenSpaceEventHandler(targetViewer.scene.canvas);
+
+    handler.setInputAction(function (movement) {
+        //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+        var cartesian = targetViewer.camera.pickEllipsoid(movement.position, ellipsoid);
+
+        if (cartesian) {
+            // 将笛卡尔坐标转换为地理坐标(π)
+            var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+
+            //将弧度转为度的十进制度表示
+            var longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+            var latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+
+            //获取相机高度
+            var height = Math.ceil(targetViewer.camera.positionCartographic.height);
+
+            var data = { "lng": longitudeString, "lat": latitudeString, "height": height };
+            var point = {
+                position: Cesium.Cartesian3.fromDegrees(longitudeString, latitudeString, heights),
+                label: {
+                    text: "points",
+                    font: "12pt system-ui bold",
+                    fillColor: Cesium.Color.ORANGE,
+                    style: Cesium.LabelStyle.FILL,
+                    outlineWidth: 3,
+                    outlineColor: Cesium.Color.BLACK,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM, //垂直方向以底部来计算标签的位置
+                    pixelOffset: new Cesium.Cartesian2(0, -10) //偏移量
+                },
+                billboard: {
+                    image: "https://i.ibb.co/mqwf5kw/u638.png",
+                    width: 30,
+                    height: 30
+                }
+            }
+            targetViewer.entities.add(point);
+        } else {
+            entity.label.show = false;
+        }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+/**
+ * 添加标记点
+ * @param targetViewer 目标视图
+ * @param marks poi点集合
+ */
+export function addMarkPoints(targetViewer, marks) {
+    for (var i = 0; i < marks.length; i++) {
+        targetViewer.entities.add(marks[i]);
+    }
+}
+
+/**
+ * 添加标记点
+ * @param targetViewer 目标视图
+ * @param marks poi点集合
+ */
+export function addMarkPointsWithInfoWindow(targetViewer, marks) {
+    for (var i = 0; i < marks.length; i++) {
+        targetViewer.entities.add(marks[i]);
+    }
+
+    // 鼠标点击事件
+    var handler = new Cesium.ScreenSpaceEventHandler(targetViewer.scene.canvas);
+    var scene = targetViewer.scene;
+
+    handler.setInputAction(function (movement) {
+        //点击弹出气泡窗口
+        var pick = scene.pick(movement.position);
+        // 拾取对象
+        if (pick && pick.id && pick.id._position) {
+            console.log(pick.id);
+            // 世界坐标转地理坐标（弧度）
+            var cartographic = Cesium.Cartographic.fromCartesian(pick.id._position._value);
+            // 地理坐标（弧度）转经纬度坐标
+            var point = [cartographic.longitude / Math.PI * 180, cartographic.latitude / Math.PI *
+                180];
+            var height = Math.ceil(targetViewer.camera.positionCartographic.height);
+            var destination = Cesium.Cartesian3.fromDegrees(point[0], point[1], height);
+
+            var content =
+                "<div>" +
+                "<video poster='../../../static/images/videoPlaceHolder.png'></video>" +
+                "<span>BLG001</span><input id='query' type='button' value='查询' /></br>" +
+                "</div>";
+            var obj = {
+                position: movement.position,
+                destination: destination,
+                content: content
+            };
+            infoWindow(obj, targetViewer);
+
+            $("#query").unbind('click').click(function () {
+                localStorage.setItem('videoID', "videoID12");
+                window.open('#/query', '_self');
+            })
+        } else {
+            $('#trackPopUp').hide();
+        }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+function infoWindow(obj, viewer) {
+    var picked = viewer.scene.pick(obj.position);
+    if (Cesium.defined(picked)) {
+        var id = Cesium.defaultValue(picked.id, picked.primitive.id);
+        if (id instanceof Cesium.Entity) {
+            if (obj.destination) {
+                viewer.camera.flyTo({ //初始化跳转某个地方
+                    destination: obj.destination
+                });
+            }
+            //填充内容
+            $(".cesium-selection-wrapper").show();
+            $('#trackPopUpLink').empty();
+            $('#trackPopUpLink').append(obj.content);
+
+            function positionPopUp(c) {
+                var x = c.x - ($('#trackPopUpContent').width()) / 2;
+                var y = c.y - ($('#trackPopUpContent').height());
+                $('#trackPopUpContent').css('transform', 'translate3d(' + x + 'px, ' + y + 'px, 0)');
+            }
+            var c = new Cesium.Cartesian2(obj.position.x, obj.position.y);
+            $('#trackPopUp').show();
+            positionPopUp(c); // Initial position at the place item picked
+            var removeHandler = viewer.scene.postRender.addEventListener(function () {
+                var changedC = Cesium.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, id
+                    ._position._value);
+                // If things moved, move the popUp too
+                if (c && changedC && c.x && changedC.x && c.y && changedC.y) {
+                    if ((c.x !== changedC.x) || (c.y !== changedC.y)) {
+                        positionPopUp(changedC);
+                        c = changedC;
+                    }
+                }
+
+            });
+            // PopUp close button event handler
+            $('.leaflet-popup-close-button').click(function () {
+                $('#trackPopUp').hide();
+                $('#trackPopUpLink').empty();
+                $(".cesium-selection-wrapper").hide();
+                removeHandler.call();
+                return false;
+            });
+            return id;
+        }
+    }
+}
+
+/**
+ * 绘制二维网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function add2dFillAndBorderGrids(grids, grids_primitives, color, lineColor) {
+
+    var instanceGeometries = [];
+    var linesGeometries = [];
+
+    for (let i = 0; i < grids.length; i++) {
+        var rectangle = new Cesium.RectangleGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].boundary[0], grids[i].boundary[1], grids[i].boundary[2], grids[i].boundary[3]),
+            height: grids[i].floor_height
+        });
+        var instanceGeometry = new Cesium.GeometryInstance({
+            geometry: rectangle,
+            attributes: {
+                color: color
+            }
+        });
+        instanceGeometries.push(instanceGeometry);
+
+        var rectangleLine = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].boundary[0], grids[i].boundary[1], grids[i].boundary[2], grids[i].boundary[3]),
+            height: grids[i].floor_height
+        });
+
+        if (grids[i].path_flag == 0) {
+            // path_flag：0，真实网格路径； path_flag：1 路网补全网格
+            var instanceLineGeometry = new Cesium.GeometryInstance({
+                geometry: rectangleLine,
+                attributes: {
+                    color: lineColor
+                }
+            });
+        } else {
+            var instanceLineGeometry = new Cesium.GeometryInstance({
+                geometry: rectangleLine,
+                attributes: {
+                    color: Cesium.ColorGeometryInstanceAttribute.fromColor(Cesium.Color.RED)
+                }
+            });
+        }
+
+        linesGeometries.push(instanceLineGeometry);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: instanceGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 绘制空心轨迹网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function addStrokeTrackGrids(grids, grids_primitives, lineColor) {
+
+    var linesGeometries = [];
+    for (let i = 0; i < grids.length; i++) {
+        var rectangleLine = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].boundary[0], grids[i].boundary[1], grids[i].boundary[2], grids[i].boundary[3]),
+            height: grids[i].floor_height
+        });
+        var instanceLineGeometry = new Cesium.GeometryInstance({
+            geometry: rectangleLine,
+            attributes: {
+                color: lineColor
+            }
+        });
+        instanceLineGeometry.distanceDisplayCondition = new Cesium.DistanceDisplayCondition(0.0, 800.0);
+        linesGeometries.push(instanceLineGeometry);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 绘制实心轨迹网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function addFillTrackGrids(grids, grids_primitives, lineColor) {
+
+    var linesGeometries = [];
+
+    for (let i = 0; i < grids.length; i++) {
+
+        var rectangle = new Cesium.RectangleGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].boundary[0], grids[i].boundary[1], grids[i].boundary[2], grids[i].boundary[3]),
+            height: grids[i].height
+        });
+
+        var instanceGeometry = new Cesium.GeometryInstance({
+            geometry: rectangle,
+            id: grids[i].geo_num,
+            attributes: {
+                color: lineColor
+            }
+        });
+        linesGeometries.push(instanceGeometry);
+        instanceGeometry.distanceDisplayCondition = new Cesium.DistanceDisplayCondition(0.0, 800.0);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 绘制二维无交互网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function add2dGridsShape(grids, grids_primitives, lineColor) {
+
+    var linesGeometries = [];
+
+    for (let i = 0; i < grids.length; i++) {
+        var rectangleLine = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].lbLng, grids[i].lbLat, grids[i].rtLng, grids[i].rtLat),
+            height: 0
+        });
+        var instanceLineGeometry = new Cesium.GeometryInstance({
+            geometry: rectangleLine,
+            attributes: {
+                color: lineColor
+            }
+        });
+        instanceLineGeometry.distanceDisplayCondition = new Cesium.DistanceDisplayCondition(100.0, 800.0);
+        linesGeometries.push(instanceLineGeometry);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 绘制二维网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function add2dGrids(grids, grids_primitives, color, lineColor) {
+
+    var instanceGeometries = [];
+    var linesGeometries = [];
+
+    for (let i = 0; i < grids.length; i++) {
+        var rectangle = new Cesium.RectangleGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].lblng, grids[i].lblat, grids[i].rtlng, grids[i].rtlat),
+            height: 0
+        });
+
+        var instanceGeometry = new Cesium.GeometryInstance({
+            geometry: rectangle,
+            id: grids[i].code,
+            attributes: {
+                color: color
+            }
+        });
+        instanceGeometries.push(instanceGeometry);
+
+        var rectangleLine = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].lblng, grids[i].lblat, grids[i].rtlng, grids[i].rtlat),
+            height: 0
+        });
+        var instanceLineGeometry = new Cesium.GeometryInstance({
+            geometry: rectangleLine,
+            attributes: {
+                color: lineColor
+            }
+        });
+        linesGeometries.push(instanceLineGeometry);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: instanceGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 绘制三维网格
+ * @param grids 网格数据集合
+ * @param grids_primitives
+ * */
+export function add3dGirds(grids, grids_primitives) {
+    var instanceGeometries = [];
+    var linesGeometries = [];
+
+    for (let i = 0; i < grids.length; i++) {
+        var rectangle = new Cesium.RectangleGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(
+                grids[i].lblng,
+                grids[i].lblat,
+                grids[i].rblng,
+                grids[i].rblat
+            ),
+            height: grids[i].hb,
+            extrudedHeight: grids[i].ht
+        });
+        var instanceGeometry = new Cesium.GeometryInstance({
+            geometry: rectangle,
+            id: grids[i].code,
+            attributes: {
+                color: new Cesium.ColorGeometryInstanceAttribute(
+                    255 / 255,
+                    0 / 255,
+                    0 / 255,
+                    0.1
+                )
+            }
+        });
+        instanceGeometries.push(instanceGeometry);
+
+        var rectangleLine = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(
+                grids[i].lblng,
+                grids[i].lblat,
+                grids[i].rblng,
+                grids[i].rblat
+            ),
+            height: grids[i].hb,
+            extrudedHeight: grids[i].ht
+        });
+        var instanceLineGeometry = new Cesium.GeometryInstance({
+            geometry: rectangleLine,
+            attributes: {
+                color: new Cesium.ColorGeometryInstanceAttribute(
+                    255 / 255,
+                    0 / 255,
+                    0 / 255,
+                    0.4
+                )
+            }
+        });
+        linesGeometries.push(instanceLineGeometry);
+    }
+
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: instanceGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+    grids_primitives.add(
+        new Cesium.Primitive({
+            geometryInstances: linesGeometries,
+            appearance: new Cesium.PerInstanceColorAppearance({
+                flat: true
+            }),
+            asynchronous: false
+        })
+    );
+}
+
+/**
+ * 获取三维场景下可视区域(四顶点均在屏幕上)
+ *  */
+export function getVisibleRegion(targetViewer) {
+    if (targetViewer.scene.mode == Cesium.SceneMode.SCENE2D) {
+        // 范围对象
+        var extent = {};
+        // 得到当前三维场景
+        var scene = targetViewer.scene;
+        // 得到当前三维场景的椭球体
+        var ellipsoid = scene.globe.ellipsoid;
+        var canvas = scene.canvas;
+        // canvas左上角
+        var car3_lt = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(0, 0), ellipsoid);
+        // canvas右下角
+        var car3_rb = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(canvas.width, canvas.height), ellipsoid);
+        // 当canvas左上角和右下角全部在椭球体上
+        if (car3_lt && car3_rb) {
+            var carto_lt = ellipsoid.cartesianToCartographic(car3_lt);
+            var carto_rb = ellipsoid.cartesianToCartographic(car3_rb);
+            extent.xmin = Cesium.Math.toDegrees(carto_lt.longitude);
+            extent.ymax = Cesium.Math.toDegrees(carto_lt.latitude);
+            extent.xmax = Cesium.Math.toDegrees(carto_rb.longitude);
+            extent.ymin = Cesium.Math.toDegrees(carto_rb.latitude);
+        } else if (!car3_lt && car3_rb) {
+            // 当canvas左上角不在但右下角在椭球体上
+            var car3_lt2 = null;
+            var yIndex = 0;
+            do {
+                // 这里每次10像素递加，一是10像素相差不大，二是为了提高程序运行效率
+                yIndex <= canvas.height ? yIndex += 10 : canvas.height;
+                car3_lt2 = targetViewer.camera.pickEllipsoid(new Cesium.Cartesian2(0, yIndex), ellipsoid);
+            } while (!car3_lt2);
+            var carto_lt2 = ellipsoid.cartesianToCartographic(car3_lt2);
+            var carto_rb2 = ellipsoid.cartesianToCartographic(car3_rb);
+            extent.xmin = Cesium.Math.toDegrees(carto_lt2.longitude);
+            extent.ymax = Cesium.Math.toDegrees(carto_lt2.latitude);
+            extent.xmax = Cesium.Math.toDegrees(carto_rb2.longitude);
+            extent.ymin = Cesium.Math.toDegrees(carto_rb2.latitude);
+        }
+        // 获取高度
+        extent.height = Math.ceil(targetViewer.camera.positionCartographic.height);
+        // console.log("可视区域：", extent.xmin, extent.xmax, extent.ymin, extent.ymax, extent.height);
+        return extent;
+    } else if (targetViewer.scene.mode == Cesium.SceneMode.SCENE3D) {
+        var extent = {};
+        var field_view = targetViewer.camera.computeViewRectangle();
+        if (field_view != null) {
+            extent.xmin = Cesium.Math.toDegrees(field_view.west);
+            extent.xmax = Cesium.Math.toDegrees(field_view.east);
+            extent.ymin = Cesium.Math.toDegrees(field_view.south);
+            extent.ymax = Cesium.Math.toDegrees(field_view.north);
+        }
+        if (extent.xmin == -180 || extent.xmin == undefined) {
+            extent.xmin = -179;
+        }
+        if (extent.xmax == 180 || extent.xmax == undefined) {
+            extent.xmax = 179;
+        }
+        if (extent.ymin == -90 || extent.ymin == undefined) {
+            extent.ymin = -89;
+        }
+        if (extent.ymax == 90 || extent.ymax == undefined) {
+            extent.ymax = 89;
+        }
+
+        extent.height = Math.ceil(targetViewer.camera.positionCartographic.height);
+        // console.log("可视区域：", extent.xmin, extent.xmax, extent.ymin, extent.ymax, extent.height);
+        return extent;
+    }
+}
+
+/**
+ * 网格查询
+ *  */
+export function gridsQuery(targetViewer, callback) {
+
+    //得到当前三维场景的椭球体
+    var ellipsoid = targetViewer.scene.globe.ellipsoid;
+
+    var handler = new Cesium.ScreenSpaceEventHandler(targetViewer.scene.canvas);
+    handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    handler.setInputAction(function (movement) {
+
+        var cartesian = targetViewer.camera.pickEllipsoid(movement.position, ellipsoid);
+
+        if (cartesian) {
+            // 将笛卡尔坐标转换为地理坐标(π)
+            var cartographic = ellipsoid.cartesianToCartographic(cartesian);
+
+            //将弧度转为度的十进制度表示
+            var longitude = Cesium.Math.toDegrees(cartographic.longitude);
+            var latitude = Cesium.Math.toDegrees(cartographic.latitude);
+
+            //获取相机高度
+            var height = Math.ceil(targetViewer.camera.positionCartographic.height);
+            callback(longitude, latitude, height, handler);
+        }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+/**
+ * 屏幕点转化为wgs84坐标点
+ * @param {} point  屏幕点
+ * @param {*} targetViewer 地图
+ */
+function screenPointToWGS8(point, targetViewer) {
+    //通过指定的椭球或者地图对应的坐标系，将鼠标的二维坐标转换为对应椭球体三维坐标
+    var cartesian = targetViewer.camera.pickEllipsoid(point, targetViewer.scene.ellipsoid);
+
+    if (cartesian) {
+        // 将笛卡尔坐标转换为地理坐标(π)
+        var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+
+        //将弧度转为度的十进制度表示
+        var longitudeString = Cesium.Math.toDegrees(cartographic.longitude);
+        var latitudeString = Cesium.Math.toDegrees(cartographic.latitude);
+        var height = cartographic.height;
+
+        // //获取相机高度
+        // var height = Math.ceil(viewer.camera.positionCartographic.height);
+
+        console.log("lng", longitudeString, "lat", latitudeString, "height", height, cartographic);
+    }
+}
+
+/**
+ * 笛卡尔坐标系转WGS84坐标系
+ * @param cartesian 笛卡尔坐标
+ *  */
+export function cartesian3_to_WGS84(cartesian) {
+    // 将笛卡尔坐标转化为地理坐标
+    var cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+    // 将地理坐标转化为WGS84坐标
+    var latitude = Cesium.Math.toDegrees(cartographic.latitude);
+    var longitude = Cesium.Math.toDegrees(cartographic.longitude);
+    var alt = cartographic.height;
+    return { lat: latitude, lng: longitude, alt: alt }
+}
+
+/**
+ * 绘制多边形实例
+ *  */
+export function drawPolygonGeometryInstances(data, targetViewer) {
+    for (let i = 0; i < data.length; i++) {
+        targetViewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(data[i].boundary[0], data[i].boundary[1]),
+            polygon: {
+                hierarchy: new Cesium.PolygonHierarchy(
+                    Cesium.Cartesian3.fromDegreesArray(data[i].boundary)
+                ),
+                height: 100,
+                material: Cesium.Color.RED.withAlpha(0.8)
+            },
+            label: {
+                text: data[i].id,
+                color: Cesium.Color.fromCssColorString('#fff'),
+                backgroundColor: Cesium.Color.NAVY.withAlpha(0.9),
+                font: 'normal 32px MicroSoft YaHei',
+                showBackground: true,
+                scale: 0.5,
+                horizontalOrigin: Cesium.HorizontalOrigin.LEFT_CLICK,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(10.0, 100000.0),
+                disableDepthTestDistance: 10000.0,
+
+            }
+        })
+    }
+}
+
+/**
+ * 绘制网格图形实例
+ *  */
+export function drawHeatMapGridGeometryInstances(grids, polygon_primitives, line_primitives) {
+    var instanceGeometries = [];
+    var lineGeometries = [];
+    for (let i = 0; i < grids.length; i++) {
+        var rectangle = new Cesium.RectangleGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].lbLng, grids[i].lbLat, grids[i].rtLng, grids[i].rtLat),
+            height: 0
+        });
+        var instanceGeometry = new Cesium.GeometryInstance({
+            geometry: rectangle,
+            id: grids[i].geo_num,
+            attributes: {
+                color: new Cesium.ColorGeometryInstanceAttribute(255 / 255, 67 / 255, 67 / 255, 0.1)
+            }
+        });
+        instanceGeometries.push(instanceGeometry);
+
+        var line = new Cesium.RectangleOutlineGeometry({
+            rectangle: Cesium.Rectangle.fromDegrees(grids[i].lbLng, grids[i].lbLat, grids[i].rtLng, grids[i].rtLat),
+            height: 3
+        });
+        var lineGeometry = new Cesium.GeometryInstance({
+            geometry: line,
+            attributes: {
+                color: new Cesium.ColorGeometryInstanceAttribute(237 / 255, 211 / 255, 0 / 255, 0.8)
+            }
+        });
+        lineGeometries.push(lineGeometry);
+    }
+
+    polygon_primitives.add(new Cesium.Primitive({
+        geometryInstances: instanceGeometries,
+        appearance: new Cesium.PerInstanceColorAppearance({
+            flat: true,
+        }),
+        asynchronous: false
+    }));
+    line_primitives.add(new Cesium.Primitive({
+        geometryInstances: lineGeometries,
+        appearance: new Cesium.PerInstanceColorAppearance({
+            flat: true,
+        }),
+        asynchronous: false
+    }));
+}
+
+
+

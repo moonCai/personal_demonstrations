@@ -1,0 +1,23 @@
+#us-map {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+polygon {
+  stroke: rgba(3, 195, 255);
+  stroke-opacity: 0.8;
+  fill: rgba(3, 195, 255);
+  fill-opacity: 0;
+}
+
+polygon.dynamicGrid {
+  stroke: rgb(225, 31, 98);
+  stroke-opacity: 1;
+  fill: rgba(225, 31, 98);
+  fill-opacity: 0.8;
+  display: none;
+}

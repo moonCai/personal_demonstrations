@@ -1,0 +1,25 @@
+/**
+ * 配置编译环境和线上环境之间的切换
+ * baseUrl: 域名地址
+ */
+
+// 基础服务
+let baseUrl = '';
+
+// wms底图
+let wmsUrl = 'http://panorama-video.test.iwhere.com/geoserver/shenzhen/wms?service=WMS';
+
+if (process.env.NODE_ENV == 'development') {
+    baseUrl = 'http://10.3.26.34:8068/panorama-video-monitor/'
+} else if (process.env.NODE_ENV == 'production') {
+    baseUrl = "http://127.0.0.1:8088/panorama-video-monitor/";
+} else if (process.env.NODE_ENV == 'testing') {
+    baseUrl = "http://panorama-video.test.iwhere.com/panorama-video-monitor/";
+} else if (process.env.NODE_ENV == 'qaing') {
+    baseUrl = 'http://10.3.26.34/panorama-video-monitor/'
+}
+
+export {
+    baseUrl,
+    wmsUrl
+}

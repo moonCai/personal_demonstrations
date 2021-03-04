@@ -1,0 +1,48 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+// 放在App前引用， 放在打包时自定义的样式被覆盖
+import 'element-ui/lib/theme-chalk/index.css';
+import ElementUI, { Loading, Message } from 'element-ui'
+let Cesium = require('cesium/Cesium');
+let widgets= require('cesium/Widgets/widgets.css');
+import Vue from 'vue';
+import router from './router';
+import $ from 'jquery'
+import App from './App';
+
+Vue.config.productionTip = false;
+
+Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3OGQzMWE0MS1lYTA2LTRiZTYtYjFhZi1lMzk5ZDFmMDIwYmEiLCJpZCI6NDM1MCwic2NvcGVzIjpbImFzciIsImdjIl0sImlhdCI6MTU0MDU0MTEyNH0.se2dXmT555bSEa8wk7X1nnSxcxoAt0r-ERj65H9sgEc";
+
+window.$ = $;
+window.Loading = Loading;
+window.Message = Message;
+window.Cesium = Cesium; 
+window.widgets = widgets;
+
+Vue.use(ElementUI, { size: 'small', zIndex: 30000 });
+
+Vue.directive('enterNumber', {
+  inserted: function (el) {
+    el.addEventListener("keypress", function (e) {
+      e = e || window.event;
+      let charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
+      let re = /\d/;
+      if (!re.test(String.fromCharCode(charcode)) && charcode > 9 && !e.ctrlKey) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        } else {
+          e.returnValue = false;
+        }
+      }
+    });
+  }
+});
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  components: { App },
+  template: '<App/>'
+})

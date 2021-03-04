@@ -1,0 +1,53 @@
+<template>
+  <div id="app">
+    <header-component :show="showHeader" />
+    <router-view />
+  </div>
+</template>
+
+<script>
+import headerComponent from "components/content/Header";
+
+export default {
+  name: "App",
+  data() {
+    return {
+      showHeader: false,
+    };
+  },
+  components: {
+    headerComponent,
+  },
+  updated() {
+    this.showHeader = this.$route.meta.login_require;
+  },
+};
+</script>
+
+<style>
+@import url("./assets/css/base.css");
+@import url("./assets/css/scrollBar.css");
+@import url("./assets/css/dropDown.css");
+@import url("./assets/css/checkbox.css");
+@import url("./assets/css/datePicker.css");
+@import url("./assets/css/table.css");
+
+html,
+body {
+  height: 100%;
+}
+
+#app {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  height: 100%;
+  background: rgb(3, 6, 10);
+  min-width: 1260px;
+  min-height: 730px;
+  position: relative;
+}
+</style>
+

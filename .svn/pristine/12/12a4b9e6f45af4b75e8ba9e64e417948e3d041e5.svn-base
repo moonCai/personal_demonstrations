@@ -1,0 +1,139 @@
+<template>
+  <div class="dimming">
+    <div class="report">
+      <div class="title">分析报告</div>
+
+      <span class="close" @click="closeReportEvent"></span>
+
+      <div class="content">
+        <div class="info">
+          <ul>
+            <li>
+              <span class="category"> 用户ID：</span>
+              <span class="category-detail">86327898918201</span>
+            </li>
+
+            <li>
+              <span class="category"> 人员类别：</span>
+              <span class="category-detail">外来人员</span>
+            </li>
+
+            <li>
+              <span class="category"> 点位数量：</span>
+              <span class="category-detail">76826 个</span>
+            </li>
+
+            <li>
+              <span class="category"> 开始时间：</span>
+              <span class="category-detail">2010-09-09 12:00</span>
+            </li>
+
+            <li>
+              <span class="category"> 结束时间：</span>
+              <span class="category-detail">2010-09-09 12:00</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="table">
+            <histogram />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Histogram from "components/common/Histogram";
+
+export default {
+  data() {
+    return {};
+  },
+  components: {
+      Histogram
+  },
+  methods: {
+    closeReportEvent() {
+      this.$emit('displayReport', false);
+    }
+  }
+};
+</script>
+
+<style scoped lang="scss">
+.dimming {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+
+  .report {
+    width: 800px;
+    height: 500px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background:rgba(4, 24, 35, 0.8);
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    .title {
+      height: 45px;
+      line-height: 45px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      background: rgba(3, 195, 225, 1);
+    }
+
+    .close {
+        width: 20px;
+        height: 20px;
+        position: absolute;
+        top: 12px;
+        right: 15px;
+        z-index: 10;
+        cursor: pointer;
+        background: url(~assets/images/common/white_close.png) no-repeat center / cover;
+      }
+
+    .content {
+      width: 100%;
+      display: flex;
+      margin-top: 20px;
+
+      .info {
+        width: 300px;
+        height: 410px;
+        color: #0af;
+
+        li {
+            height: 40px;
+            line-height: 40px;
+            display: flex;
+
+            .category {
+                display: inline-block;
+                width: 110px;
+                text-align: right;
+            }
+
+            .category-item {
+                flex: 1;
+            }
+        }
+      }
+
+      .table {
+        flex: 1;
+        height: 410px;
+        position: relative;
+      }
+    }
+  }
+}
+</style>

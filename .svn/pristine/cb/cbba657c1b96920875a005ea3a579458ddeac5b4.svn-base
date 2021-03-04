@@ -1,0 +1,18 @@
+/**
+ * @func 要频繁调用的函数
+ * @delay 延时时长
+ */
+export function debounce(func, delay = 200) {
+    let timer = null;
+
+    return function(...args) {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args)
+        }, delay)
+    }
+
+}
+
+// const refresh = this.debounce(func, 300);
+// refresh();

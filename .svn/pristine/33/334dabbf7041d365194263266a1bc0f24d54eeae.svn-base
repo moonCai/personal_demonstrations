@@ -1,0 +1,170 @@
+<template>
+  <div class="dimming">
+    <div class="report">
+      <div class="title">分析报告</div>
+
+      <span class="close" @click="closeReportEvent"></span>
+
+      <div class="content">
+        <div class="info">
+          <ul id="report-info">
+            <li>
+              <span class="category"> 确诊人员：</span>
+              <span class="category-detail">{{ diagnosedId }}</span>
+            </li>
+
+            <li>
+              <span class="category"> 开始时间：</span>
+              <span class="category-detail">{{ startTime }}</span>
+            </li>
+
+            <li>
+              <span class="category"> 结束时间：</span>
+              <span class="category-detail">{{ endTime }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="histogram">
+          <histogram :list="histogramList" />
+        </div>
+      </div>
+
+      <div class="table">
+        <table-wrapper :list="tableList" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import Histogram from "components/common/Histogram";
+import TableWrapper from "./TableWrapper.vue";
+
+export default {
+  data() {
+    return {
+      diagnosedId: "",
+      startTime: "",
+      endTime: "",
+      histogramList: [],
+      tableList: [],
+    };
+  },
+  props: ["data"],
+  components: {
+    Histogram,
+    TableWrapper,
+  },
+  watch: {
+    data(newVal, oldVal) {
+      if (newVal) {
+        this.diagnosedId = newVal.diagnosis_track_id;
+        this.startTime = newVal.start_time;
+        this.endTime = newVal.end_time;
+        this.histogramList = newVal.geo_num_list;
+        this.tableList = newVal.contract_list;
+      } else {
+        this.diagnosedId = "";
+        this.startTime = "";
+        this.endTime = "";
+        this.histogramList = [];
+        this.tableList = [];
+      }
+    },
+  },
+  methods: {
+    closeReportEvent() {
+      this.$emit("displayReport", false);
+    },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+.dimming {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.4);
+
+  .report {
+    width: 800px;
+    height: 700px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(4, 24, 35, 0.8);
+    border: 1px solid rgba(3, 195, 255, 0.7);
+
+    .title {
+      height: 45px;
+      line-height: 45px;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 600;
+      background: rgba(3, 195, 225, 1);
+    }
+
+    .close {
+      width: 20px;
+      height: 20px;
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      z-index: 10;
+      cursor: pointer;
+      background: url(~assets/images/common/white_close.png) no-repeat center /
+        cover;
+    }
+
+    .content {
+      width: 100%;
+      display: flex;
+      margin-top: 20px;
+
+      .info {
+        width: 270px;
+        height: 410px;
+        color: #0af;
+
+        #report-info {
+          margin-top: 140px;
+        }
+
+        li {
+          height: 40px;
+          line-height: 40px;
+          display: flex;
+
+          .category {
+            display: inline-block;
+            width: 110px;
+            text-align: right;
+          }
+
+          .category-item {
+            flex: 1;
+          }
+        }
+      }
+
+      .histogram {
+        flex: 1;
+        height: 410px;
+        position: relative;
+      }
+    }
+
+    .table {
+      width: 100%;
+      margin-top: 10px;
+      height: 200px;
+    }
+  }
+}
+</style>

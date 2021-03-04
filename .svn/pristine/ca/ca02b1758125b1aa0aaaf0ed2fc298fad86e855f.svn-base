@@ -1,0 +1,122 @@
+<template>
+  <div class id="header">
+    <!-- 左侧导航栏 -->
+    <div class id="left-header">
+      <img src="../../assets/images/homePage/logo.png" />
+      <span>视频实时全景监控及管理系统</span>
+    </div>
+
+    <!-- 右侧导航栏 -->
+    <div class id="right-header">
+      <!-- 目录 -->
+      <div class="directory">
+        <img src="../../assets/images/header/directory.png" />
+        <span @click="publishAction">目录</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {};
+  },
+  methods: {
+    // 目录
+    publishAction() {
+      this.$emit("directoryTree", true);
+    }
+  },
+  mounted() {}
+};
+</script>
+
+<style scoped>
+#header {
+  width: 100%;
+  height: 60px;
+  position: relative;
+  z-index: 9999;
+}
+
+/* 左侧导航栏 */
+#left-header {
+  width: 595px;
+  height: 100%;
+  line-height: 60px;
+  background: url("../../assets/images/homePage/left-header.png");
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: left;
+}
+
+#left-header img {
+  margin-left: 30px;
+  margin-right: 10px;
+  vertical-align: sub;
+}
+
+#left-header span {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* 右侧导航栏 */
+#right-header {
+  position: absolute;
+  left: 590px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(
+    to right,
+    #000 0%,
+    rgba(3, 195, 255, 0.2) 10%,
+    rgba(3, 195, 255, 0.3) 100%
+  );
+  border-bottom: 1px solid rgba(0, 150, 197, 1);
+}
+
+#right-header::before {
+  content: "";
+  width: 1px;
+  height: 70px;
+  position: absolute;
+  top: -12px;
+  left: 0px;
+  background: rgba(0, 150, 197, 1);
+  transform: rotate(35deg);
+  transform-origin: left bottom;
+}
+
+/* 目录树 */
+.directory {
+  width: 57px;
+  height: 60px;
+  position: absolute;
+  top: 0;
+  right: 20px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.directory img {
+  width: 26px;
+  height: 26px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.directory span {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+</style>

@@ -1,0 +1,146 @@
+export {
+    Marquee
+}
+
+/**
+ * @param {string} containerID 滚动容器ID
+ * @param {string} direction 滚动方向
+ * @param {Array} texts 展示的信息
+ * @param {int} rows 每次移动的行数
+ * @param {int} interval 每次移动的时长
+ * */
+
+var Marquee = function (
+    containerID,
+    direction,
+    texts,
+    rows,
+    interval,
+    geonumList
+) {
+    this.containerID = containerID + "-container";
+    this.marqueeID = containerID;
+    document.querySelector("#marquee-container").innerHTML = "<ul id='marquee'></ul>";
+
+    this.direction = direction;
+    this.texts = texts;
+    this.geonumList = geonumList;
+
+    this.scrollContainer = $("#" + this.marqueeID)[0];
+    $("#" + this.marqueeID).css({
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transformY: 0
+    });
+    // 设置滚动文本
+    this.setTexts(texts);
+    // 文本行高
+    var lineHeight = this.scrollContainer.style.lineHeight;
+    lineHeight = lineHeight == "" ? "26" : lineHeight;
+    this.scrollContainer.style.height = parseInt(lineHeight) * 5 + "px";
+    // 每次滚动距离
+    this.scrollDistance = parseInt(lineHeight) * rows;
+    // 滚动时长
+    this.interval = interval;
+    // 监听转场动画结束
+    this.listenToTransitionEnd();
+};
+
+// 设置滚动文本
+Marquee.prototype.setTexts = function (texts) {
+    $("#" + this.marqueeID)
+        .children()
+        .remove();
+    texts.forEach(text => {
+        $("#" + this.marqueeID).append(
+            "<li>" + text + "</li>"
+        );
+    });
+}
+
+// 设置过渡
+Marquee.prototype.addTransition = function () {
+    this.scrollContainer.style.transition = "all 0.5s";
+    this.scrollContainer.style.webkitTransition = "all 0.5s";
+};
+
+// 移除溢出元素
+Marquee.prototype.removeElements = function () {
+    $("#" + this.marqueeID)
+        .children(":first")
+        .remove();
+    $("#" + this.marqueeID).append(
+        "<li>" + this.texts[this.times] + "</li>"
+    );
+    this.removeTransition();
+    this.scrollContainer.style.transform = "translateY(0px)";
+    this.scrollContainer.style.webkitTransform = "translateY(0px)";
+
+    if (this.times >= this.texts.length - 1) {
+        this.times = 0;
+    } else {
+        this.times++;
+    }
+}
+
+// 监听过渡结束
+Marquee.prototype.listenToTransitionEnd = function () {
+    // Safari 3.1 到 6.0 代码
+    this.scrollContainer.addEventListener("webkitTransitionEnd", () => {
+        this.removeElements();
+    });
+    // 标准语法
+    this.scrollContainer.addEventListener("transitionend", () => {
+        this.removeElements();
+    });
+};
+
+// 移除监听过渡结束
+Marquee.prototype.removeToListenTransition = function () {
+    this.scrollContainer.style.transition = "none";
+    this.scrollContainer.style.webkitTransition = "none";
+}
+
+// 移除过渡
+Marquee.prototype.removeTransition = function () {
+    this.scrollContainer.style.transition = "none";
+    this.scrollContainer.style.webkitTransition = "none";
+};
+
+// 设置Y方向上平移动
+Marquee.prototype.scrollUp = function () {
+    this.scrollContainer.style.transform =
+        "translateY(-" + this.scrollDistance + "px";
+    this.scrollContainer.style.webkitTransform =
+        "translateY(-" + this.scrollDistance + "px";
+};
+
+Marquee.prototype.scroll = function (callback) {
+    this.times = 0;
+    switch (this.direction) {
+        case "up":
+            this.timeID = setInterval(() => {
+                this.addTransition();
+                this.scrollUp();
+                callback && callback(this.times + 1);
+            }, 5000);
+            break;
+        case "down":
+            alert("down 暂未实现");
+            break;
+        case "left":
+            alert("left 暂未实现");
+            break;
+        case "right":
+            alert("right 暂未实现");
+            break;
+    }
+};
+
+// 销毁
+Marquee.prototype.destory = function () {
+    // 清除定时器
+    clearInterval(this.timeID);
+    $("#" + this.marqueeID).remove();
+}

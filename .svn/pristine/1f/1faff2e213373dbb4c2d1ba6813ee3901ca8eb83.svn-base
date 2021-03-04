@@ -1,0 +1,51 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+
+const Login = () => import("pages/login/Login")
+const BuildTrack = () => import("pages/buildTrack/BuildTrack")
+const ParterAnalysis = () => import("pages/hotMap/HotMap")
+const CloseContact = () => import("pages/closeContact/CloseContact")
+
+Vue.use(Router)
+
+let routes = [{
+    path: '/',
+    redirect: '/hotMap',
+  },
+  // {
+  //   path: '/login',
+  //   name: 'login',
+  //   meta: {
+  //     login_require: false
+  //   },
+  //   component: Login,
+  // },
+  {
+    path: '/hotMap',
+    name: 'HotMap',
+    meta: {
+      login_require: true
+    },
+    component: ParterAnalysis
+  },
+  {
+    path: '/buildTrack',
+    name: 'buildTrack',
+    meta: {
+      login_require: true
+    },
+    component: BuildTrack
+  },
+  {
+    path: '/closeContact',
+    name: 'closeContact',
+    meta: {
+      login_require: true
+    },
+    component: CloseContact
+  }
+];
+
+export default new Router({
+  routes
+})
