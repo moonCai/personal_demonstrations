@@ -14,12 +14,7 @@
         <!-- 场景 -->
         <div class="scene-container">
           <div class="title">功能目录</div>
-          <router-link class="item" to="/tiles">倾斜摄影</router-link>
-          <router-link class="item" to="/popover">气泡弹窗</router-link>
-          <router-link class="item" to="/hotMap">时间轴 & 热力图</router-link>
-          <router-link class="item" to="/videoProjection">视频配准</router-link>
-          <router-link class="item" to="/query">网格查询</router-link>
-          <router-link class="item" to="/cameraIcons">摄像头图标</router-link>
+          <router-link class="item" v-for="info in routeInfos" :key="info.name" :to="info.path">{{ info.name }}</router-link>
         </div>
       </div>
     </div>
@@ -33,7 +28,34 @@ import HeaderComponent from "components/common/Header";
 export default {
   name: "homePage",
   data() {
-    return {};
+    return {
+      routeInfos: [
+        {
+          path: "/tiles",
+          name: "倾斜摄影"
+        },
+        {
+          path: "/popover",
+          name: "气泡弹窗"
+        },
+        {
+          path: "/hotMap",
+          name: "时间轴 & 热力图"
+        },
+        {
+          path: "/videoProjection",
+          name: "视频配准"
+        },
+        {
+          path: "/query",
+          name: "网格查询"
+        },
+        {
+          path: "/cameraIcons",
+          name: "摄像头图标"
+        },
+      ]
+    };
   },
   components: {
     HeaderComponent,
