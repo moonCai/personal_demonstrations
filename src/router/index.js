@@ -3,7 +3,7 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-const HomePage = () => import("components/HomePage")
+const HomePage = () => import("pages/HomePage")
 const Tiles = () => import("pages/tiles/Tiles")
 const Popover = () => import("pages/popover/Popover")
 const HotMap = () => import("pages/hotMap/HotMap")
