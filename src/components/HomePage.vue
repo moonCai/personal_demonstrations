@@ -19,6 +19,7 @@
           <router-link class="item" to="/hotMap">时间轴 & 热力图</router-link>
           <router-link class="item" to="/videoProjection">视频配准</router-link>
           <router-link class="item" to="/query">网格查询</router-link>
+          <router-link class="item" to="/cameraIcons">摄像头图标</router-link>
         </div>
       </div>
     </div>

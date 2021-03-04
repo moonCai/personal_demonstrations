@@ -9,6 +9,7 @@ const Popover = () => import("pages/popover/Popover")
 const HotMap = () => import("pages/hotMap/HotMap")
 const VideoProjection = () => import("pages/videoProjection/VideoProjection")
 const Query = () => import("pages/query/Query")
+const CameraIcons = () => import("pages/cameraIcons/CameraIcons")
 
 let routes = [{
     path: '/',
@@ -39,6 +40,11 @@ let routes = [{
     path: '/query',
     name: 'query',
     component: Query
+  },
+  {
+    path: '/cameraIcons',
+    name: 'cameraIcons',
+    component: CameraIcons
   }
 ]
 
