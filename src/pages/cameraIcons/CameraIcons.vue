@@ -5,7 +5,7 @@
         <rect id="shape" height="40" width="200" />
       </svg>
       <div id="text" @click="removeIcons">
-        移除摄像头图标
+        移除/显示摄像头图标
       </div>
     </div>
   </div>
@@ -19,7 +19,9 @@
 
   export default {
     data() {
-      return {};
+      return {
+        show: true,
+      };
     },
     mixins: [locationMixin],
     mounted() {
@@ -29,47 +31,41 @@
         destination: Cesium.Rectangle.fromDegrees(...this.hubeiGeoRect),
       });
 
-      let cameraInfos = [
-          {
-              lon: 113.4,
-              lat: 29.2,
-              id: "camera01"
-          },
-          {
-              lon: 113.6,
-              lat: 29.3,
-              id: "camera02"
-          },
-          {
-              lon: 113.5,
-              lat: 29.5,
-              id: "camera03"
-          },
-      ]
-
-      cameraInfos.forEach(info => {
-        CameraIcon.show(this.mapViewer, info);
-      })
-
-    //   this.leftClickOnMapEvent();
+      this.addCameraIcons();
     },
     methods: {
-      leftClickOnMapEvent() {
-        let targetViewer = this.mapViewer;
+      addCameraIcons() {
+        let cameraInfos = [
+          {
+            lon: 113.8,
+            lat: 30.5,
+            id: "camera01",
+          },
+          {
+            lon: 113.6,
+            lat: 30.2,
+            id: "camera02",
+          },
+          {
+            lon: 113.5,
+            lat: 30.7,
+            id: "camera03",
+          },
+        ];
 
-        let handler = new Cesium.ScreenSpaceEventHandler(
-          targetViewer.scene.canvas
-        );
-
-        handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-        handler.setInputAction((movement) => {
-          CameraIcon.show(targetViewer, movement);
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+        cameraInfos.forEach((info) => {
+          CameraIcon.show(this.mapViewer, info);
+        });
       },
 
       removeIcons() {
-        CameraIcon.removeAll();
+        if (this.show) {
+          CameraIcon.removeAll();
+        } else {
+          this.addCameraIcons();
+        }
+
+        this.show = !this.show;
       },
     },
   };
