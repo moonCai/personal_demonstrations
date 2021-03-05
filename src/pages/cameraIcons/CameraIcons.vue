@@ -1,7 +1,7 @@
 <template>
   <div id="camera-icons">
-      <icon x="200" y="200" iconId="1" />
-      <!-- <icon x="130" y="120" iconId="2" /> 
+    <!-- <icon x="200" y="200" iconId="1" /> -->
+    <!-- <icon x="130" y="120" iconId="2" /> 
       <icon x="280" y="230" iconId="3" />
       <icon x="330" y="204" iconId="4" />
       <icon x="430" y="600" iconId="5" />
@@ -18,16 +18,17 @@
   import { defaultInitCesium } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
-  import Icon from "./Icon"
+  //   import Icon from "components/utilities/cameraIcons/Icon"
+  import CameraIcon from "components/utilities/cameraIcons/index";
 
   export default {
     data() {
       return {};
     },
     mixins: [locationMixin],
-    components: {
-        Icon
-    },
+    // components: {
+    //   Icon,
+    // },
     mounted() {
       this.mapViewer = defaultInitCesium("camera-icons", "tiandiTu", true);
 
@@ -48,8 +49,7 @@
         handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
         handler.setInputAction((movement) => {
-            console.log("左键")
-        //   PopUp.popOver(targetViewer, movement);
+          CameraIcon.show(targetViewer, movement);
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
       },
     },

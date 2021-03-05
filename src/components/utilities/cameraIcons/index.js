@@ -1,7 +1,7 @@
-import PopUp from "./PopUpWindow";
-import Vue from "vue"
+import Icon from "./Icon";
+import Vue from "vue";
 
-const PopUpWindow = {}
+const CameraIcon = {};
 
 let isfirst = true;
 let windowInfos = [];
@@ -10,8 +10,7 @@ let windowInfos = [];
  * @targetViewer 底图
  * @position 点击点屏幕坐标
  */
-PopUpWindow.popOver = function (targetViewer, movement) {
-
+CameraIcon.show = function (targetViewer, movement) {
   let position = movement.position;
   let ellipsoid = targetViewer.scene.globe.ellipsoid;
   let cartesian3 = targetViewer.camera.pickEllipsoid(position, ellipsoid);
@@ -19,42 +18,42 @@ PopUpWindow.popOver = function (targetViewer, movement) {
   if (!cartesian3) return;
 
   // 1.创建组件构造器
-  const PopOverConstructor = Vue.extend(PopUp);
+  const PopOverConstructor = Vue.extend(Icon);
 
   // 2.根据组件构造器构建一个组件对象
-  const popUp = new PopOverConstructor();
+  const icon = new PopOverConstructor();
 
   // 3.将组件对象手动挂载到某一个元素上
-  popUp.$mount(document.createElement('div'));
+  icon.$mount(document.createElement("div"));
 
   // 4.popUp.$el对应的就是上面创建的div
-  targetViewer.container.appendChild(popUp.$el);
+  targetViewer.container.appendChild(icon.$el);
 
-  Vue.prototype.$popUp = popUp;
+  Vue.prototype.$icon = icon;
 
   let randomNum1 = Math.floor(Math.random() * 100 + 1);
   let randomNum2 = Math.floor(Math.random() * 100 + 1);
   let randomNum3 = Math.floor(Math.random() * 100 + 1);
-  let id = `popup-${randomNum1 * randomNum2 * randomNum3}`;
+  let id = `icon-${randomNum1 * randomNum2 * randomNum3}`;
 
-  popUp.$el.id = id;
+  icon.$el.id = id;
 
   windowInfos.push({
     id,
     cartesian3,
-    popUp
+    icon,
   });
 
   if (isfirst) {
     isfirst = false;
-    popUp.mapChangedEvent(targetViewer);
+    icon.mapChangedEvent(targetViewer);
   }
 
-  popUp.show(position, id, windowInfos);
-}
+  icon.display(position, id, windowInfos);
+};
 
-PopUpWindow.removeAll = function() {
+CameraIcon.removeAll = function () {
   $(`.pop-up-wrapper`).remove();
-}
+};
 
-export default PopUpWindow;
+export default CameraIcon;
