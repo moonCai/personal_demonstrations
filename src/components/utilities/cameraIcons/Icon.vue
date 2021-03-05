@@ -1,5 +1,5 @@
 <template>
-  <div class="icon">
+  <div class="icon-wrapper">
     <img class="camera" src="./images/video.png" />
     <div class="line"></div>
     <div class="item circle1"></div>
@@ -76,13 +76,14 @@
 </script>
 
 <style>
-  .icon {
+  .icon-wrapper {
     width: 60px;
     height: 130px;
     position: absolute;
     transform: translateX(-50%);
     z-index: 100;
     box-sizing: content-box;
+    pointer-events: none;
   }
 
   .camera {

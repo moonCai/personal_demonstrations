@@ -1,5 +1,9 @@
 import Icon from "./Icon";
 import Vue from "vue";
+import {
+  degrees_to_cartesian3,
+  cartesian3_to_windowCoordinates,
+} from "assets/js/cesium/coordinateTransforms";
 
 const CameraIcon = {};
 
@@ -10,18 +14,21 @@ let windowInfos = [];
  * @targetViewer 底图
  * @position 点击点屏幕坐标
  */
-CameraIcon.show = function (targetViewer, movement) {
-  let position = movement.position;
-  let ellipsoid = targetViewer.scene.globe.ellipsoid;
-  let cartesian3 = targetViewer.camera.pickEllipsoid(position, ellipsoid);
+CameraIcon.show = function (targetViewer, iconInfo) {
+  let cartesian3 = degrees_to_cartesian3(
+    targetViewer,
+    iconInfo.lon,
+    iconInfo.lat
+  );
+  let position = cartesian3_to_windowCoordinates(targetViewer, cartesian3);
 
   if (!cartesian3) return;
 
   // 1.创建组件构造器
-  const PopOverConstructor = Vue.extend(Icon);
+  const IconConstructor = Vue.extend(Icon);
 
   // 2.根据组件构造器构建一个组件对象
-  const icon = new PopOverConstructor();
+  const icon = new IconConstructor();
 
   // 3.将组件对象手动挂载到某一个元素上
   icon.$mount(document.createElement("div"));
@@ -31,11 +38,7 @@ CameraIcon.show = function (targetViewer, movement) {
 
   Vue.prototype.$icon = icon;
 
-  let randomNum1 = Math.floor(Math.random() * 100 + 1);
-  let randomNum2 = Math.floor(Math.random() * 100 + 1);
-  let randomNum3 = Math.floor(Math.random() * 100 + 1);
-  let id = `icon-${randomNum1 * randomNum2 * randomNum3}`;
-
+  let id = iconInfo.id;
   icon.$el.id = id;
 
   windowInfos.push({
@@ -53,7 +56,7 @@ CameraIcon.show = function (targetViewer, movement) {
 };
 
 CameraIcon.removeAll = function () {
-  $(`.pop-up-wrapper`).remove();
+  $(`.icon-wrapper`).remove();
 };
 
 export default CameraIcon;

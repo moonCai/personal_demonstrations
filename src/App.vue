@@ -63,6 +63,7 @@ body {
   right: 20px;
   bottom: 20px;
   border: 1px solid #0af;
+  overflow: hidden;
 }
 </style>
 

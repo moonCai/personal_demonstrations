@@ -57,7 +57,7 @@ export function windowCoordinates_to_cartesian3(targetViewer, x, y) {
  *@世界坐标转化为屏幕坐标 
  */
 export function cartesian3_to_windowCoordinates(targetViewer, cartesian3) {
-  let windowPoint = Cesium.SceneTransforms.wgs84ToWindowCoordinates(targetViewer.scene, cartesian3)
+  let windowPoint = Cesium.SceneTransforms.wgs84ToWindowCoordinates(targetViewer.scene, cartesian3);
 
-  console.log("屏幕坐标：", windowPoint);
+  return windowPoint;
 }
