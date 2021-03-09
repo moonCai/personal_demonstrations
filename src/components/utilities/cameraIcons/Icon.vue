@@ -1,10 +1,14 @@
 <template>
   <div class="icon-wrapper">
-    <img class="camera" src="./images/video.png" />
-    <div class="line"></div>
-    <div class="item circle1"></div>
-    <div class="item circle2"></div>
-    <div class="item circle3"></div>
+    <div class="near">
+      <img class="camera" src="./images/video.png" />
+      <div class="line"></div>
+      <div class="item circle1"></div>
+      <div class="item circle2"></div>
+      <div class="item circle3"></div>
+    </div>
+
+    <div class="far"></div>
   </div>
 </template>
 
@@ -13,52 +17,10 @@
     data() {
       return {
         windowInfos: [],
+        isNear: false,
       };
     },
     methods: {
-      // 地图移动事件
-      mapChangedEvent(targetViewer) {
-        let scene = targetViewer.scene;
-        scene.camera.percentageChanged = 0.00001;
-
-        scene.camera.changed.addEventListener(() => {
-          if (this.windowInfos.length == 0) return;
-
-          this.windowInfos.forEach((windowInfo) => {
-            // 判断某个cartesian3是否出现在地球背面
-            const occluder = new Cesium.EllipsoidalOccluder(
-              scene.globe.ellipsoid,
-              targetViewer.camera.position
-            );
-            const visible = occluder.isPointVisible(windowInfo.cartesian3);
-
-            if (!visible) {
-              windowInfo.icon.hide(windowInfo.id);
-              return;
-            }
-
-            let windowPoint = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-              scene,
-              windowInfo.cartesian3
-            );
-
-            windowInfo.icon.display(windowPoint, windowInfo.id);
-          });
-        });
-      },
-
-      display(point, iconId, windowInfos) {
-        windowInfos && (this.windowInfos = windowInfos);
-
-        let $cameraIcon = $(`#${iconId}`);
-        $cameraIcon
-          .css({
-            left: `${point.x}px`,
-            top: `${point.y - $cameraIcon.height()}px`,
-          })
-          .show();
-      },
-
       // 隐藏或移除
       hide(iconId, isRemove) {
         $(`#${iconId}`).hide();
@@ -77,13 +39,28 @@
 
 <style>
   .icon-wrapper {
-    width: 60px;
+    width: 45px;
     height: 130px;
     position: absolute;
     transform: translateX(-50%);
     z-index: 100;
     box-sizing: content-box;
     pointer-events: none;
+  }
+
+  .near,
+  .far {
+    width: 100%;
+    height: 100%;
+    display: none;
+  }
+
+  .far {
+    width: 30px;
+    height: 30px;
+    margin: auto;
+    background: url(~components/utilities/cameraIcons/images/video.png)
+      no-repeat center / cover;
   }
 
   .camera {

@@ -53,9 +53,11 @@
           },
         ];
 
-        cameraInfos.forEach((info) => {
-          CameraIcon.show(this.mapViewer, info);
-        });
+        CameraIcon.show(this.mapViewer, cameraInfos);
+
+        // cameraInfos.forEach((info) => {
+        //   CameraIcon.show(this.mapViewer, info);
+        // });
       },
 
       removeIcons() {
