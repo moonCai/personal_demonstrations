@@ -15,7 +15,7 @@
   import { defaultInitCesium } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
-  import CameraIcon from "components/utilities/cameraIcons/index";
+  import IconColletion from "components/utilities/cameraIcons/index";
 
   export default {
     data() {
@@ -31,11 +31,11 @@
         destination: Cesium.Rectangle.fromDegrees(...this.hubeiGeoRect),
       });
 
-      this.addCameraIcons();
+      this.showIcons();
     },
     methods: {
-      addCameraIcons() {
-        let cameraInfos = [
+      showIcons() {
+        let infos = [
           {
             lon: 113.8,
             lat: 30.5,
@@ -53,18 +53,14 @@
           },
         ];
 
-        CameraIcon.show(this.mapViewer, cameraInfos);
-
-        // cameraInfos.forEach((info) => {
-        //   CameraIcon.show(this.mapViewer, info);
-        // });
+        IconColletion.addIcons(this.mapViewer, infos);
       },
 
       removeIcons() {
         if (this.show) {
-          CameraIcon.removeAll();
+          IconColletion.removeAll();
         } else {
-          this.addCameraIcons();
+          this.showIcons();
         }
 
         this.show = !this.show;

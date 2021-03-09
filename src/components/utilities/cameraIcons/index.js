@@ -5,27 +5,23 @@ import {
   cartesian3_to_windowCoordinates,
 } from "assets/js/cesium/coordinateTransforms";
 
-const CameraIcon = {};
+const IconColletion = {};
 
-let isfirst = true;
-let windowInfos = [];
 let viewer = null;
+let windowInfos = [];
 let isNear = false;
+let isfirst = true;
 
 /**
  * @targetViewer 底图
- * @position 点击点屏幕坐标
+ * @iconInfos 摄像头信息集合
  */
-CameraIcon.show = function (targetViewer, iconInfos) {
+IconColletion.addIcons = function (targetViewer, iconInfos) {
   viewer = targetViewer;
+  windowInfos = [];
 
   iconInfos.forEach((iconInfo) => {
-    let cartesian3 = degrees_to_cartesian3(
-      targetViewer,
-      iconInfo.lon,
-      iconInfo.lat
-    );
-    let position = cartesian3_to_windowCoordinates(targetViewer, cartesian3);
+    let cartesian3 = degrees_to_cartesian3(viewer, iconInfo.lon, iconInfo.lat);
 
     if (!cartesian3) return;
 
@@ -39,12 +35,14 @@ CameraIcon.show = function (targetViewer, iconInfos) {
     icon.$mount(document.createElement("div"));
 
     // 4.popUp.$el对应的就是上面创建的div
-    targetViewer.container.appendChild(icon.$el);
+    viewer.container.appendChild(icon.$el);
 
     Vue.prototype.$icon = icon;
 
     let id = iconInfo.id;
     icon.$el.id = id;
+
+    let position = cartesian3_to_windowCoordinates(viewer, cartesian3);
 
     windowInfos.push({
       id,
@@ -54,8 +52,6 @@ CameraIcon.show = function (targetViewer, iconInfos) {
     });
   });
 
-  console.log("windowInfos======:", windowInfos);
-
   if (isfirst) {
     isfirst = false;
     mapChangedEvent();
@@ -63,24 +59,6 @@ CameraIcon.show = function (targetViewer, iconInfos) {
 
   display();
 };
-
-function heightMoreThanTarget() {
-  let height = Math.ceil(viewer.camera.positionCartographic.height);
-  isNear = height < 30000;
-  let iconHeight = isNear ? "130px" : "30px";
-
-  $(".icon-wrapper").css({
-    height: iconHeight,
-  });
-
-  if (isNear) {
-    $(".near").show();
-    $(".far").hide();
-  } else {
-    $(".near").hide();
-    $(".far").show();
-  }
-}
 
 // 地图移动事件
 function mapChangedEvent() {
@@ -90,30 +68,32 @@ function mapChangedEvent() {
   scene.camera.changed.addEventListener(() => {
     if (windowInfos.length == 0) return;
 
+    let viewerHeight = heightMoreThanTarget();
+
     windowInfos.forEach((windowInfo) => {
       // 判断某个cartesian3是否出现在地球背面
       const occluder = new Cesium.EllipsoidalOccluder(
         scene.globe.ellipsoid,
         viewer.camera.position
       );
-      const visible = occluder.isPointVisible(windowInfo.cartesian3);
+
+      let { id, cartesian3 } = windowInfo;
+      const visible = occluder.isPointVisible(cartesian3);
 
       if (!visible) {
-        windowInfo.icon.hide(windowInfo.id);
+        $(`#${id}`).hide();
         return;
       }
 
-      heightMoreThanTarget();
-
-      let windowPoint = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+      let { x, y } = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
         scene,
-        windowInfo.cartesian3
+        cartesian3
       );
 
-      $(`#${windowInfo.id}`)
+      $(`#${id}`)
         .css({
-          left: `${windowPoint.x}px`,
-          bottom: `${$(viewer.container).height() - windowPoint.y}px`,
+          left: x,
+          bottom: viewerHeight - y,
         })
         .show();
     });
@@ -121,20 +101,41 @@ function mapChangedEvent() {
 }
 
 function display() {
-  heightMoreThanTarget();
+  let viewerHeight = heightMoreThanTarget();
 
   windowInfos.forEach((info) => {
-    $(`#${info.id}`)
+    let { id, position } = info;
+
+    $(`#${id}`)
       .css({
-        left: `${info.position.x}px`,
-        bottom: `${$(viewer.container).height() - info.position.y}px`,
+        left: position.x,
+        bottom: viewerHeight - position.y,
       })
       .show();
   });
 }
 
-CameraIcon.removeAll = function () {
+function heightMoreThanTarget() {
+  let height = Math.ceil(viewer.camera.positionCartographic.height);
+  isNear = height < 30000;
+
+  $(".icon-wrapper").css({
+    height: isNear ? 130 : 30,
+  });
+
+  if (isNear) {
+    $(".near").show();
+    $(".far").hide();
+  } else {
+    $(".near").hide();
+    $(".far").show();
+  }
+
+  return $(viewer.container).height();
+}
+
+IconColletion.removeAll = function () {
   $(`.icon-wrapper`).remove();
 };
 
-export default CameraIcon;
+export default IconColletion;

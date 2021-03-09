@@ -15,25 +15,9 @@
 <script>
   export default {
     data() {
-      return {
-        windowInfos: [],
-        isNear: false,
-      };
+      return {};
     },
-    methods: {
-      // 隐藏或移除
-      hide(iconId, isRemove) {
-        $(`#${iconId}`).hide();
-
-        if (!isRemove) return;
-
-        let index = this.windowInfos.findIndex(
-          (windowInfo) => windowInfo.id == iconId
-        );
-
-        this.windowInfos.splice(index, 1);
-      },
-    },
+    methods: {},
   };
 </script>
 
@@ -57,10 +41,26 @@
 
   .far {
     width: 30px;
-    height: 30px;
+    height: 32px;
     margin: auto;
     background: url(~components/utilities/cameraIcons/images/video.png)
-      no-repeat center / cover;
+      no-repeat top / cover;
+    background-size: 30px 30px;
+    position: relative;
+  }
+
+  .far::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+    border-top: 5px solid #e43960;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
   }
 
   .camera {
