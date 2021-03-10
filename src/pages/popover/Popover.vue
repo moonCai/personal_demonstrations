@@ -5,7 +5,7 @@
 </template>
 
 <script>
-  import { defaultInitCesium } from "assets/js/cesium/mapInit";
+  import { defaultInitCesium, TIAN_DI_TU } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
   import PopUp from "components/utilities/popUp/index";
@@ -21,7 +21,7 @@
     methods: {
       // 场景初始化
       initScene() {
-        this.mapViewer = defaultInitCesium("pop-over-cesium", "tiandiTu", true);
+        this.mapViewer = defaultInitCesium("pop-over-cesium", TIAN_DI_TU, true);
 
         this.mapViewer.camera.setView({
           destination: Cesium.Rectangle.fromDegrees(

@@ -1,6 +1,6 @@
 <template>
   <div class="header-wrapper">
-    <div id="header">PERSONAL DEMONSTRATION</div>
+    <div id="header">PERSONAL PRACTICE</div>
     <div class="breadcrumb" v-if="$route.meta.title">
       <img src="~assets/images/common/home.png" />
 

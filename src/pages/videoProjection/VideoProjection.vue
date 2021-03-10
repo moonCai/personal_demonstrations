@@ -3,7 +3,7 @@
 </template>
 
 <script>
-  import { defaultInitCesium } from "assets/js/cesium/mapInit";
+  import { defaultInitCesium, TIAN_DI_TU } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
   export default {
@@ -17,7 +17,7 @@
     methods: {
       // 场景初始化
       initScene() {
-        this.mapViewer = defaultInitCesium("video-cesium", "google", true);
+        this.mapViewer = defaultInitCesium("video-cesium", TIAN_DI_TU, true);
 
         let cameraInfos = [
           {

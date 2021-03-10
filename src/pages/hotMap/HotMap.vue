@@ -9,7 +9,7 @@
   import TimeLine from "components/utilities/timeLine/TimeLine";
 
   import {
-    defaultInitCesium
+    defaultInitCesium, TIAN_DI_TU
   } from "assets/js/cesium/mapInit";
   import heatData from "assets/js/data/data";
   import {
@@ -38,7 +38,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium("hot-cesium", "tiandiTu", true);
+        this.mapViewer = defaultInitCesium("hot-cesium", TIAN_DI_TU, true);
 
         this.drawHeatMap();
       },

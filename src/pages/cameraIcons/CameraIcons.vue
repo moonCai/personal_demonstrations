@@ -5,14 +5,14 @@
         <rect id="shape" height="40" width="200" />
       </svg>
       <div id="text" @click="removeIcons">
-        移除/显示摄像头图标
+        隐藏 / 显示摄像头图标
       </div>
     </div>
   </div>
 </template>
 
 <script>
-  import { defaultInitCesium } from "assets/js/cesium/mapInit";
+  import { defaultInitCesium, TIAN_DI_TU } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
   import IconColletion from "components/utilities/cameraIcons/index";
@@ -25,7 +25,7 @@
     },
     mixins: [locationMixin],
     mounted() {
-      this.mapViewer = defaultInitCesium("camera-icons", "tianDitu", true);
+      this.mapViewer = defaultInitCesium("camera-icons", TIAN_DI_TU, true);
 
       this.mapViewer.camera.setView({
         destination: Cesium.Rectangle.fromDegrees(...this.hubeiGeoRect),

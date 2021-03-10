@@ -17,7 +17,7 @@
     locationMixin
   } from "assets/js/mixin/mixin";
   import {
-    defaultInitCesium
+    defaultInitCesium, TIAN_DI_TU
   } from "assets/js/cesium/mapInit";
   import {
     getVisibleRegion
@@ -53,7 +53,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium('query-cesium', 'tiandiTu', true);
+        this.mapViewer = defaultInitCesium('query-cesium', TIAN_DI_TU, true);
 
         this.mapViewer.camera.setView({
           destination: Cesium.Rectangle.fromDegrees(
