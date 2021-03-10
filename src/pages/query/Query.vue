@@ -4,7 +4,10 @@
     <input type="button" class="fine-grids" value="显示/隐藏网格" @click="showOrHiddenGrids">
 
     <!-- 单网格/多变形/路径查询 -->
-    <select-grids />
+    <select-grids @displayConfigWidth="displayConfigWidthEvent" />
+
+    <!-- 路径宽度设置 -->
+    <config-path-width v-show="showConfigWidth" @displayConfigWidth="displayConfigWidthEvent"/>
   </div>
 </template>
 
@@ -31,17 +34,20 @@
   } from "components/utilities/GridQuery/index"
 
   import SelectGrids from "components/utilities/GridQuery/SelectGrids"
+  import ConfigPathWidth from "./children/ConfigPathWidth"
 
   export default {
     data() {
       return {
         showGrids: false,
         fine_grid_primitives: null,
+        showConfigWidth: false
       }
     },
     mixins: [locationMixin],
     components: {
-      SelectGrids
+      SelectGrids,
+      ConfigPathWidth
     },
     mounted() {
       this.initScene();
@@ -76,6 +82,10 @@
 
           this.loadFineGridsData();
         });
+      },
+
+      displayConfigWidthEvent(display) {
+        this.showConfigWidth = display
       },
 
       // 显示或隐藏网格

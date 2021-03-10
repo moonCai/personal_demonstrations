@@ -29,6 +29,13 @@ export const server = {
     return fetch("grid/show_polygon", paramObj);
   },
 
+  /**
+   * 查询 -- 多边形框所覆盖的网格
+   */
+  getPathGrids(paramObj) {
+    return fetch("grid/show_line_buffer", paramObj);
+  },
+
 
   ////////////////////  场景一  ////////////////////
 

@@ -1,12 +1,18 @@
 <template>
-  <ul class="query-type-wrapper">
-    <li v-for="item in items" :key="item.typeName" :class="{ active: item.id == currentIndex }"
-      @click="clickQueryTypeEvent(item)">
-      <img :src="item.imgUrl" />
-      <div>{{ item.typeName }}</div>
-    </li>
+  <div class="query-type-wrapper">
+    <ul>
+      <li v-for="item in items" :key="item.typeName" :class="{ active: item.id == currentIndex }"
+        @click="clickQueryTypeEvent(item)">
+        <img :src="item.imgUrl" />
+        <div>{{ item.typeName }}</div>
+      </li>
+    </ul>
 
-  </ul>
+    <div class="config" v-show="currentIndex == 3" @click="configPathWidthEvent">设置路径宽度</div>
+
+    <div class="path-width" v-show="currentIndex == 3">路径宽度: {{width}}米</div>
+  </div>
+
 </template>
 
 <script>
@@ -32,8 +38,12 @@
             queryType: "path",
             id: 3
           }
-        ]
+        ],
+        width: 8
       }
+    },
+    mounted() {
+      this.$bus.$on("lineWidth", lineWidth => this.width = lineWidth);
     },
     methods: {
       clickQueryTypeEvent(item) {
@@ -52,9 +62,14 @@
           type: item.queryType,
           isDraw: true
         });
-      }
+      },
 
+      // 设置路径宽度
+      configPathWidthEvent() {
+        this.$emit('displayConfigWidth', true);
+      }
     }
+
   }
 
 </script>
@@ -63,11 +78,10 @@
   .query-type-wrapper {
     width: 70px;
     height: 210px;
-    border-radius: 4px;
     box-shadow: 0 0px 10px 5px rgba(0, 0, 0, 0.4);
     position: absolute;
     top: 50%;
-    right: 0;
+    right: 10px;
     transform: translateY(-50%);
     z-index: 1000;
   }
@@ -91,9 +105,40 @@
     margin-top: 10px
   }
 
-  .query-type-wrapper div {
+  .query-type-wrapper li div {
     font-size: 12px;
     color: #ddd;
+  }
+
+  div.config {
+    width: 100px;
+    height: 30px;
+    line-height: 30px;
+    float: right;
+    font-size: 14px;
+    color: #fff;
+    background: rgba(0, 170, 255, 0.8);
+    text-align: center;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.4);
+  }
+
+  div.path-width {
+    width: 100px;
+    height: 30px;
+    line-height: 30px;
+    float: right;
+    font-size: 12px;
+    color: #0af;
+    background: rgba(0, 170, 255, 0.8);
+    background: rgba(25, 49, 76, 0.9);
+    text-align: center;
+    border-radius: 4px;
+    margin-top: 10px;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.4);
   }
 
 </style>
