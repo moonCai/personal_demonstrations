@@ -33,6 +33,7 @@ module.exports = {
       'assets': resolve('src/assets'),
       'components': resolve('src/components'),
       'pages': resolve('src/pages'),
+      'static': resolve('src/static'),
       'store': resolve('src/store'),
       'request': resolve('src/request'),
       // 设置cesium别名

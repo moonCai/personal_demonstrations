@@ -1,7 +1,12 @@
 <template>
   <div class="icon-wrapper">
+    <div class="camera-info">
+      <div class="name">G98 45km 200m路段 定安海口方向</div>
+      <img class="close" src="./images/close.png" @click="closeEvent">
+      <video src="static/videos/origin.mp4" autoplay muted controls loop></video>
+    </div>
     <div class="near">
-      <img class="camera" src="./images/video.png" />
+      <img class="camera" src="./images/video.png" @click="showCameraInfo" />
       <div class="line"></div>
       <div class="item circle1"></div>
       <div class="item circle2"></div>
@@ -17,7 +22,15 @@
     data() {
       return {};
     },
-    methods: {},
+    methods: {
+      closeEvent() {
+        $(`#${this.$el.id} .camera-info`).hide();
+      },
+
+      showCameraInfo() {
+        $(`#${this.$el.id} .camera-info`).show();
+      },
+    },
   };
 </script>
 
@@ -30,6 +43,48 @@
     z-index: 100;
     box-sizing: content-box;
     pointer-events: none;
+  }
+
+  .camera-info {
+    width: 250px;
+    background: rgba(66, 31, 57, 0.8);
+    border: 1px solid rgba(228, 57, 96, 0.6);
+    position: absolute;
+    left: 105%;
+    bottom: 0;
+    display: none;
+    box-sizing: content-box;
+    border-top-left-radius: 10px;
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.4);
+  }
+
+  .camera-info .name {
+    width: 220px;
+    height: 36px;
+    line-height: 36px;
+    color: #fff;
+    font-size: 13px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+
+  .camera-info video {
+    height: 141px;
+    display: block;
+    margin: auto;
+    pointer-events: auto;
+  }
+
+  .camera-info .close {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    pointer-events: auto;
   }
 
   .near,
@@ -70,6 +125,8 @@
     left: 50%;
     margin-left: -23px;
     animation: jump 1.3s linear infinite forwards;
+    cursor: pointer;
+    pointer-events: auto;
   }
 
   .line {

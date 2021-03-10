@@ -25,7 +25,7 @@
     },
     mixins: [locationMixin],
     mounted() {
-      this.mapViewer = defaultInitCesium("camera-icons", "tiandiTu", true);
+      this.mapViewer = defaultInitCesium("camera-icons", "tianDitu", true);
 
       this.mapViewer.camera.setView({
         destination: Cesium.Rectangle.fromDegrees(...this.hubeiGeoRect),
