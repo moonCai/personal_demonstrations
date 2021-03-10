@@ -57,7 +57,7 @@
   };
 </script>
 
-<style scoped lang="scss">
+<style scoped>
   #home-page {
     position: absolute;
     top: -2px;
@@ -65,60 +65,59 @@
     right: -20px;
     bottom: -20px;
     background: url(~assets/images/homePage/cover.png) no-repeat center / cover;
+  }
 
-    .content-center {
-      width: 960px;
-      height: 520px;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px;
+  .content-center {
+    width: 960px;
+    height: 520px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+  }
 
-      .cover-container {
-        background: url(~assets/images/homePage/cover_border.png) no-repeat
-          center / cover;
-        position: relative;
+  .cover-container {
+    background: url(~assets/images/homePage/cover_border.png) no-repeat center /
+      cover;
+    position: relative;
+  }
 
-        .cover {
-          background: url(~assets/images/homePage/bg.png) no-repeat center /
-            cover;
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          transform: translate(-50%, -50%);
-        }
-      }
+  .cover {
+    background: url(~assets/images/homePage/bg.png) no-repeat center / cover;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
 
-      .scene-container {
-        position: absolute;
-        top: 25px;
-        right: 10px;
-        bottom: 30px;
+  .scene-container {
+    position: absolute;
+    top: 25px;
+    right: 10px;
+    bottom: 30px;
+  }
 
-        .title {
-          color: #fff;
-          font-weight: 500;
-          text-align: left;
-        }
+  .title {
+    color: #fff;
+    font-weight: 500;
+    text-align: left;
+  }
 
-        .item {
-          width: 200px;
-          display: inline-block;
-          color: rgb(133, 206, 255);
-          background: rgba(68, 124, 255, 0.3);
-          cursor: pointer;
-          font-weight: 320;
-          box-shadow: inset 0 0 20px 2px #54beff;
+  .item {
+    width: 200px;
+    display: inline-block;
+    color: rgb(133, 206, 255);
+    background: rgba(68, 124, 255, 0.3);
+    cursor: pointer;
+    font-weight: 320;
+    box-shadow: inset 0 0 20px 2px #54beff;
+  }
 
-          &:hover {
-            color: #fff;
-            font-weight: 350;
-            transform: scale(1.1);
-          }
-        }
-      }
-    }
+  .item:hover {
+    color: #fff;
+    font-weight: 350;
+    transform: scale(1.1);
   }
 
   @media screen and (max-width: 1919px) {

@@ -1,4 +1,3 @@
-// let Cesium = require("cesium/Cesium");
 // import { BaiduImageryProvider } from './baiduImageryProvider'
 import { wmsUrl, offlineUrl } from "request/env.js";
 

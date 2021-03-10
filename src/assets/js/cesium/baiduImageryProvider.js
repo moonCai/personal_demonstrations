@@ -1,4 +1,4 @@
-var Cesium = require('cesium/Cesium');
+let Cesium = require('cesium/Cesium');
 
 export function BaiduImageryProvider(options) {
   this._errorEvent = new Cesium.Event();
