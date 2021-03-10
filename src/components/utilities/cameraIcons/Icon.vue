@@ -34,7 +34,7 @@
   };
 </script>
 
-<style>
+<style scoped>
   .icon-wrapper {
     width: 45px;
     height: 130px;
