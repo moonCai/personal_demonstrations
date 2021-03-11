@@ -45,6 +45,7 @@ export function drawHeatMap(viewer, heatData, bounds, heatColors, minCount, maxC
 
   let level = getLevelForHeight(viewer);
 
+  // level取值范围[6， 31]
   if (level > 26) {
     // 26级为1米网格
     configs.pointRadius = 3;
@@ -55,6 +56,8 @@ export function drawHeatMap(viewer, heatData, bounds, heatColors, minCount, maxC
     configs.pointRadius = 30 - level
   }
 
+  // configs.pointRadius = 25;
+  
   configs.heatColors = heatColors || configs.heatColors;
 
   if (heatData.length > configs.pointsLength) {
