@@ -1,19 +1,35 @@
 <template>
   <div class="time-line-wrapper">
     <!-- 起止时间选择 -->
-    <el-date-picker v-model="time" type="datetimerange" format="yyyy-MM-dd HH时" range-separator="-"
-      start-placeholder="开始日期" end-placeholder="结束日期" @change="dateChangeAndClearState" :picker-options="pickerOptions">
+    <el-date-picker
+      v-model="time"
+      type="datetimerange"
+      format="yyyy-MM-dd HH时"
+      range-separator="-"
+      start-placeholder="开始日期"
+      end-placeholder="结束日期"
+      @change="dateChangeAndClearState"
+      :picker-options="pickerOptions"
+    >
     </el-date-picker>
 
     <div class="time-line">
       <!-- 播放按钮 -->
-      <span id="play-button" :class="isPlay ? 'pause' : 'play'" @click="playOrPauseEvent"></span>
+      <span
+        id="play-button"
+        :class="isPlay ? 'pause' : 'play'"
+        @click="playOrPauseEvent"
+      ></span>
 
       <!-- 播放条 -->
       <div id="play-bar-wrapper">
         <ul id="play-bar" v-show="timeArr.length != 0">
-          <li v-for="(time, i) in timeArr1" :key="'time' + i" :id="'time' + i"
-            @click="changeTimePickerProgressEvent(i, $event)">
+          <li
+            v-for="(time, i) in timeArr1"
+            :key="'time' + i"
+            :id="'time' + i"
+            @click="changeTimePickerProgressEvent(i, $event)"
+          >
             <span class="scale-value">{{ time }}</span>
             <span class="cirlce-dot"></span>
             <span class="max-scale-value" v-show="i + 2 == timeArr.length">
@@ -83,10 +99,10 @@
         let ratio = clickX / overLength;
 
         $("#progress-bar").css({
-          width: `${(1 - ratio) * overLength}px`
+          width: `${(1 - ratio) * overLength}px`,
         });
         $("#trangel").css({
-          left: `${clickX}px`
+          left: `${clickX}px`,
         });
       },
 
@@ -251,15 +267,9 @@
         this.timeId = setInterval(() => {
           let trangleOffset = $("#trangel")[0].offsetLeft;
           let totalOffset = trangleOffset - $("#play-bar")[0].offsetLeft;
-          
+
           // 时间轴初始可视化长度
           let initialWidth = this.computeInitialWidthOfPlayBar();
-
-          // 移动至临界点 -- 游标运动到时间轴最右侧
-          if (initialWidth - trangleOffset <= 0 && !this.isEnd) {
-            this.timelineArriveCriticalPoint();
-            return;
-          }
 
           // 每移动一个步长
           if (totalOffset % 100 == 0) {
@@ -268,9 +278,14 @@
             // 移动至最后时刻
             if (currentIndex == this.timeArr.length - 1) {
               this.removePlayTimer();
-
               this.isEnd = true;
               this.isPlay = false;
+            }
+
+            // 移动至临界点 -- 游标运动到时间轴最右侧
+            if (initialWidth - trangleOffset <= 0 && !this.isEnd) {
+              this.timelineArriveCriticalPoint();
+              return;
             }
 
             this.momentOfTimelineChange(this.timeArr[currentIndex]);
@@ -302,7 +317,7 @@
           left: `${$("#play-bar")[0].offsetLeft - 600}px`,
         });
         $("#trangel").css({
-          left: 0
+          left: 0,
         });
         $("#progress-bar").css({
           width: `${barWidth}px`,
@@ -317,10 +332,10 @@
         let initialWidth = this.computeInitialWidthOfPlayBar();
 
         $("#play-bar").css({
-          left: 0
+          left: 0,
         });
         $("#trangel").css({
-          left: 0
+          left: 0,
         });
         $("#progress-bar").css({
           width: `${initialWidth}px`,
@@ -338,7 +353,6 @@
       this.removePlayTimer();
     },
   };
-
 </script>
 
 <style scoped>
@@ -356,7 +370,7 @@
     box-shadow: inset 0 0 6px 2px #478dfc;
   }
 
-  .time-line-wrapper>>>.el-range-editor--small.el-input__inner {
+  .time-line-wrapper >>> .el-range-editor--small.el-input__inner {
     width: 280px;
     position: absolute;
     top: 50%;
@@ -365,17 +379,17 @@
     border: 1px solid #478dfc;
   }
 
-  .time-line-wrapper>>>.el-date-editor .el-range-separator {
+  .time-line-wrapper >>> .el-date-editor .el-range-separator {
     width: 24px;
     padding: 0;
     color: rgb(86, 171, 228);
   }
 
-  .time-line-wrapper>>>.el-icon-date:before {
+  .time-line-wrapper >>> .el-icon-date:before {
     color: rgb(86, 171, 228);
   }
 
-  .time-line-wrapper>>>.el-range-editor--small .el-range-input {
+  .time-line-wrapper >>> .el-range-editor--small .el-range-input {
     color: #fff;
   }
 
@@ -494,5 +508,4 @@
     transform: translateX(-50%);
     background: url(./images/trangel.png);
   }
-
 </style>
