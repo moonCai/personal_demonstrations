@@ -85,15 +85,17 @@ function mapChangedEvent() {
         return;
       }
 
-      let { x, y } = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
+      let cartesian = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
         scene,
         cartesian3
       );
 
+      if (!cartesian) return;
+
       $(`#${id}`)
         .css({
-          left: x,
-          bottom: viewerHeight - y,
+          left: cartesian.x,
+          bottom: viewerHeight - cartesian.y,
         })
         .show();
     });
