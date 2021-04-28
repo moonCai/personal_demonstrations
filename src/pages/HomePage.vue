@@ -51,6 +51,10 @@
             path: "/cameraIcons",
             name: "摄像头图标",
           },
+          {
+            path: "/particle",
+            name: "粒子系统",
+          },
         ],
       };
     },
@@ -151,7 +155,7 @@
       line-height: 40px;
       font-size: 14px;
       border-radius: 4px;
-      margin-top: 18px;
+      margin-top: 10px;
     }
   }
 
@@ -186,7 +190,7 @@
       line-height: 52px;
       font-size: 18px;
       border-radius: 5px;
-      margin-top: 25px;
+      margin-top: 15px;
     }
   }
 
@@ -213,7 +217,7 @@
     .scene-container .title {
       height: 51px;
       line-height: 85px;
-      font-size: 27px;
+      font-size: 20px;
     }
 
     .scene-container .item {
@@ -221,7 +225,7 @@
       line-height: 68px;
       font-size: 24px;
       border-radius: 7px;
-      margin-top: 34px;
+      margin-top: 15px;
     }
   }
 </style>

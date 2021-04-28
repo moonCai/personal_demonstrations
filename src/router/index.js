@@ -10,6 +10,7 @@ const HotMap = () => import("pages/hotMap/HotMap");
 const VideoProjection = () => import("pages/videoProjection/VideoProjection");
 const Query = () => import("pages/query/Query");
 const CameraIcons = () => import("pages/cameraIcons/CameraIcons");
+const ParticleSystem = () => import("pages/particle/ParticleSystem");
 
 let routes = [
   {
@@ -53,6 +54,12 @@ let routes = [
     name: "cameraIcons",
     meta: { title: "摄像头图标" },
     component: CameraIcons,
+  },
+  {
+    path: "/particle",
+    name: "particle",
+    meta: { title: "粒子系统" },
+    component: ParticleSystem,
   },
 ];
 
