@@ -66,6 +66,7 @@ export function defaultInitCesium(
     baseLayerPicker: false, // 是否显示图层选择器,
     selectionIndicator: false, // 是否显示选取指示器组件
     imageryProvider: imageryProvider,
+    shouldAnimate: true,
   };
 
   if (options && completionByDefaultOptions) {

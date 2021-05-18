@@ -79,8 +79,11 @@ export function diffTime(startTime, endTime, unit) {
       let time = gmtToTimeStr(startStamp).substring(0, 13);
       result.push(`${time}时`);
     }
-  
-    result.push(`${end.substring(0, 13)}时`);
+
+    if (result[result.length - 1] != `${end.substring(0, 13)}时`) {
+      result.push(`${end.substring(0, 13)}时`);
+    }
+
   
     return result;
   }
