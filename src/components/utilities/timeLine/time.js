@@ -84,7 +84,6 @@ export function diffTime(startTime, endTime, unit) {
       result.push(`${end.substring(0, 13)}时`);
     }
 
-  
     return result;
   }
   

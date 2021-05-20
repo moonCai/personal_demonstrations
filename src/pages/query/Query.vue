@@ -1,9 +1,9 @@
 <template>
   <div id="query-cesium">
-    <!-- 显示/隐藏网格 -->
+    <!-- 显示 / 隐藏网格 -->
     <input type="button" class="fine-grids" value="显示/隐藏网格" @click="showOrHiddenGrids">
 
-    <!-- 单网格/多变形/路径查询 -->
+    <!-- 单网格 / 多边形 / 路径查询 -->
     <select-grids @displayConfigWidth="displayConfigWidthEvent" />
 
     <!-- 路径宽度设置 -->
@@ -20,7 +20,7 @@
     locationMixin
   } from "assets/js/mixin/mixin";
   import {
-    defaultInitCesium, TIAN_DI_TU
+    defaultInitCesium, A_MAP
   } from "assets/js/cesium/mapInit";
   import {
     getVisibleRegion
@@ -59,7 +59,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium('query-cesium', TIAN_DI_TU, true);
+        this.mapViewer = defaultInitCesium('query-cesium', A_MAP, true);
 
         this.mapViewer.camera.setView({
           destination: Cesium.Rectangle.fromDegrees(

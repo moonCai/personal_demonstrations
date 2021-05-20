@@ -11,6 +11,7 @@ const VideoProjection = () => import("pages/videoProjection/VideoProjection");
 const Query = () => import("pages/query/Query");
 const CameraIcons = () => import("pages/cameraIcons/CameraIcons");
 const ParticleSystem = () => import("pages/particle/ParticleSystem");
+const DrawModes = () => import("pages/drawModes/DrawModes");
 
 let routes = [
   {
@@ -60,6 +61,12 @@ let routes = [
     name: "particle",
     meta: { title: "粒子系统" },
     component: ParticleSystem,
+  },
+  {
+    path: "/drawModes",
+    name: "drawModes",
+    meta: { title: "绘制方式" },
+    component: DrawModes,
   },
 ];
 

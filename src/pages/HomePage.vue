@@ -55,6 +55,10 @@
             path: "/particle",
             name: "粒子系统",
           },
+          {
+            path: "/drawModes",
+            name: "绘制方式",
+          },
         ],
       };
     },

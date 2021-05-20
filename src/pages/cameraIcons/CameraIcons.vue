@@ -12,7 +12,7 @@
 </template>
 
 <script>
-  import { defaultInitCesium, TIAN_DI_TU } from "assets/js/cesium/mapInit";
+  import { defaultInitCesium, A_MAP } from "assets/js/cesium/mapInit";
   import { locationMixin } from "assets/js/mixin/mixin";
 
   import IconColletion from "components/utilities/cameraIcons/index";
@@ -25,7 +25,7 @@
     },
     mixins: [locationMixin],
     mounted() {
-      this.mapViewer = defaultInitCesium("camera-icons", TIAN_DI_TU, true);
+      this.mapViewer = defaultInitCesium("camera-icons", A_MAP, true);
 
       this.mapViewer.camera.setView({
         destination: Cesium.Rectangle.fromDegrees(...this.hubeiGeoRect),

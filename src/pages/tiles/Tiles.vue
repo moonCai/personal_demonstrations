@@ -4,7 +4,7 @@
 
 <script>
   import {
-    defaultInitCesium, TIAN_DI_TU
+    defaultInitCesium, A_MAP
   } from "assets/js/cesium/mapInit";
   import {
     locationMixin
@@ -20,7 +20,7 @@
     },
     methods: {
       initScene() {
-        this.mapViewer = defaultInitCesium("mutiple-cesium", TIAN_DI_TU, true);
+        this.mapViewer = defaultInitCesium("mutiple-cesium", A_MAP, true);
 
         this.videoProjectionTest();
 
