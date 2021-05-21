@@ -125,13 +125,8 @@
 
           let gridsData = response.geo_num_list;
           let primitives = this.fine_grid_primitives;
-          let rgba = {
-            red: 77 / 255,
-            green: 149 / 255,
-            blue: 240 / 255,
-            alpha: 0.5
-          }
-
+          let rgba = [77 / 255, 149 / 255, 240 / 255, 125 / 255];
+     
           draw2dOutlineGridsPrimitives(
             gridsData,
             primitives,

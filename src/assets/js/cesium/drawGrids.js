@@ -9,12 +9,7 @@ export function draw2dGridsPrimitives(grids, gridsPrimitives, rgba) {
       geometry: drawOne2dRectangleGeometry(grid.boundary, 0),
       id: grid.geo_num,
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          rgba.red,
-          rgba.green,
-          rgba.blue,
-          rgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...rgba),
       },
     });
 
@@ -36,12 +31,7 @@ export function draw2dOutlineGridsPrimitives(grids, gridsPrimitives, rgba) {
     let instanceLineGeometry = new Cesium.GeometryInstance({
       geometry: drawOne2dRectangleOutlineGeometry(boundary),
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          rgba.red,
-          rgba.green,
-          rgba.blue,
-          rgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...rgba),
       },
     });
 
@@ -69,12 +59,7 @@ export function draw2dGridsWithOutlinePrimitives(
     let instanceGeometry = new Cesium.GeometryInstance({
       geometry: drawOne2dRectangleGeometry(grid.boundary, 0),
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          fillRgba.red,
-          fillRgba.green,
-          fillRgba.blue,
-          fillRgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...fillRgba),
       },
     });
     instanceGeometries.push(instanceGeometry);
@@ -82,12 +67,7 @@ export function draw2dGridsWithOutlinePrimitives(
     let instanceLineGeometry = new Cesium.GeometryInstance({
       geometry: drawOne2dRectangleOutlineGeometry(grid.boundary),
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          borderRgba.red,
-          borderRgba.green,
-          borderRgba.blue,
-          borderRgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...borderRgba),
       },
     });
     linesGeometries.push(instanceLineGeometry);
@@ -118,12 +98,7 @@ function drawOne2dRectangleOutlineGeometry(boundary, gridHeight) {
   let height = gridHeight || 0;
 
   return new Cesium.RectangleOutlineGeometry({
-    rectangle: Cesium.Rectangle.fromDegrees(
-      boundary[0],
-      boundary[1],
-      boundary[2],
-      boundary[3]
-    ),
+    rectangle: Cesium.Rectangle.fromDegrees(...boundary),
     height: height,
   });
 }
@@ -147,12 +122,7 @@ export function draw3dGridsPrimitives(
       geometry: drawOne3dRectangleGeometry(grid),
       id: grid.code,
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          fillRgba.red,
-          fillRgba.green,
-          fillRgba.blue,
-          fillRgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...fillRgba),
       },
     });
     instanceGeometries.push(instanceGeometry);
@@ -160,12 +130,7 @@ export function draw3dGridsPrimitives(
     let instanceLineGeometry = new Cesium.GeometryInstance({
       geometry: drawOne3dRectangleOutlineGeometry(grid),
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          borderRgba.red,
-          borderRgba.green,
-          borderRgba.blue,
-          borderRgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...borderRgba),
       },
     });
     linesGeometries.push(instanceLineGeometry);

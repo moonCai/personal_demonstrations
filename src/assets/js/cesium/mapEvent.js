@@ -3,7 +3,7 @@
  * */
 export function mapMoveEnd(targetViewer) {
 
-  targetViewer.scene.camera.moveEnd.addEventListener(function () {
+  targetViewer.scene.camera.moveEnd.addEventListener(() => {
     let cartographic = targetViewer.scene.globe.ellipsoid.cartesianToCartographic(
       targetViewer.camera.position
     );

@@ -30,6 +30,7 @@
     methods: {
       initScene() {
         this.mapViewer = defaultInitCesium("draw-modes", A_MAP, true);
+        this.mapViewer.scene.globe.depthTestAgainstTerrain = true
       },
     },
   };

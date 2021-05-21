@@ -20,6 +20,8 @@ let boundary = [];
 export function getViewer(viewer) {
   targetViewer = viewer;
 
+  $(document).bind("contextmenu", () => false);
+
   polygonPrimitives = viewer.scene.primitives.add(
     new Cesium.PrimitiveCollection()
   );
@@ -117,7 +119,7 @@ function createSingleGrid(info) {
       outlineColor: Cesium.Color.RED.withAlpha(0.8),
       // 只有设置高度 outline才有效
       height: 0,
-      zIndex: 200,
+      zIndex: 20000,
       material: Cesium.Color.RED.withAlpha(0.3),
     },
   });
@@ -283,7 +285,7 @@ function drawRectangleShape(positionData) {
   return targetViewer.entities.add({
     rectangle: {
       coordinates: Cesium.Rectangle.fromDegrees(...boundary),
-      height: 10,
+      height: 0,
       heightReference: Number.CLAMP_TO_GROUND,
       outline: true,
       outlineColor: Cesium.Color.RED,
