@@ -1,9 +1,9 @@
-import { cartesian3_to_degrees } from "assets/js/cesium/coordinateTransforms";
-import { server } from "request/api.js";
+import { cartesian3_to_degrees } from "./utilitiesMethods";
+import { draw2dOutlineGridsPrimitives } from "./utilitiesMethods";
+import { getLevelForHeight } from "./utilitiesMethods";
 import { DynamicDrawTool } from "./drawTool";
-import { draw2dOutlineGridsPrimitives } from "assets/js/cesium/drawGrids";
-import { getLevelForHeight } from "assets/js/cesium/regionAndLevel";
 
+import { server } from "request/api";
 import bus from "assets/js/bus";
 
 let targetViewer;
@@ -317,12 +317,12 @@ function drawRectangleShape(positionData) {
   return targetViewer.entities.add({
     rectangle: {
       coordinates: Cesium.Rectangle.fromDegrees(...boundary),
-      height: 0,
+      height: 10,
       heightReference: Number.CLAMP_TO_GROUND,
       outline: true,
       outlineColor: Cesium.Color.RED,
-      outlineWidth: 10,
-      material: Cesium.Color.WHITE.withAlpha(0),
+      outlineWidth: 1,
+      material: Cesium.Color.RED.withAlpha(0.3),
     },
   });
 }
