@@ -1,6 +1,5 @@
 import { cartesian3_to_degrees } from "./utilitiesMethods";
 import { draw2dOutlineGridsPrimitives } from "./utilitiesMethods";
-import { getLevelForHeight } from "./utilitiesMethods";
 import { DynamicDrawTool } from "./drawTool";
 
 import { server } from "request/api";
@@ -10,13 +9,12 @@ let targetViewer;
 let handler;
 let singleGrid;
 let polygonPrimitives;
-
+let rectangle = null;
 let rectanglePrimitives;
 let activeShapePoints = [];
 let floatingPoint = null;
 let floatingPoints = [];
 let activeShape = null;
-let rectangle = null;
 let boundary = [];
 
 export function getViewer(viewer) {
@@ -76,6 +74,7 @@ function queryTypeEvent(query) {
 // 单网格绘制
 function drawSingleGrid() {
   let scene = targetViewer.scene;
+
   handler.setInputAction((movement) => {
     let ray = targetViewer.camera.getPickRay(movement.position);
     let cartesian3 = scene.globe.pick(ray, scene);
@@ -89,26 +88,16 @@ function drawSingleGrid() {
       video_height: targetViewer.camera.positionCartographic.height,
     };
 
-    loadSingleGridInfo(movement.position, params);
+    loadSingleGridInfo(params);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 // 加载单网格
-function loadSingleGridInfo(position, params) {
+function loadSingleGridInfo(params) {
   if (singleGrid) {
     targetViewer.entities.remove(singleGrid);
     singleGrid = null;
   }
-
-  let level = getLevelForHeight(targetViewer);
-
-  bus.$emit("endDraw", {
-    x: position.x,
-    y: position.y,
-    lngs: params.lng,
-    lats: params.lat,
-    level: level,
-  });
 
   server.getSingleGridInfo(params).then((response) => {
     if (response.server_status != 200) return;
@@ -138,12 +127,10 @@ function createSingleGrid(info) {
 function clearDrawSingleGrid() {
   handler && handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  if (!singleGrid) return;
-
-  targetViewer.entities.remove(singleGrid);
-  singleGrid = null;
-
-  bus.$emit("clearDraw", false);
+  if (singleGrid) {
+    targetViewer.entities.remove(singleGrid);
+    singleGrid = null;
+  }
 }
 
 // 加载多边形网格
@@ -163,31 +150,11 @@ function loadPolygonGridsInfo(cartesians) {
     video_height: targetViewer.camera.positionCartographic.height,
   };
 
-  let position = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-    targetViewer.scene,
-    cartesians[cartesians.length - 2]
-  );
-
-  let level = getLevelForHeight(targetViewer);
-
-  bus.$emit("endDraw", {
-    x: position.x,
-    y: position.y,
-    lngs: params.lngs,
-    lats: params.lats,
-    level: level,
-  });
-
   server.getPolygonGrids(params).then((response) => {
     if (response.server_status != 200) return;
 
     let gridsData = response.geo_num_list;
-    let rgba = {
-      red: 77 / 255,
-      green: 149 / 255,
-      blue: 240 / 255,
-      alpha: 0.8,
-    };
+    let rgba = [77 / 255, 149 / 255, 240 / 255, 200 / 255];
 
     draw2dOutlineGridsPrimitives(gridsData, polygonPrimitives, rgba);
   });
@@ -294,7 +261,7 @@ function drawRectangle() {
   }
 }
 
-// 绘制路径
+// 绘制矩形
 function drawRectangleShape(positionData) {
   activeShape && targetViewer.entities.remove(activeShape);
 
@@ -311,7 +278,6 @@ function drawRectangleShape(positionData) {
   let lng2 = Math.max(degrees[0].longitude, degrees[1].longitude);
   let lat1 = Math.min(degrees[0].latitude, degrees[1].latitude);
   let lat2 = Math.max(degrees[0].latitude, degrees[1].latitude);
-
   boundary = [lng1, lat1, lng2, lat2];
 
   return targetViewer.entities.add({
@@ -329,9 +295,7 @@ function drawRectangleShape(positionData) {
 
 function terminateShape() {
   rectangle = drawRectangleShape(activeShapePoints);
-
   loadGridsInPolyline();
-
   clearDynamicPath();
 }
 
@@ -363,11 +327,9 @@ function clearDrawRectangle() {
   handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
   handler.removeInputAction(Cesium.ScreenSpaceEventType.MOUSE_MOVE);
   handler.removeInputAction(Cesium.ScreenSpaceEventType.RIGHT_CLICK);
-
-  bus.$emit("clearDraw", false);
 }
 
-// 加载绘制矩形区域网格
+// 加载矩形区域网格
 function loadGridsInPolyline() {
   let params = {
     lats: `${boundary[1]}, ${boundary[1]}, ${boundary[3]}, ${boundary[3]}, ${boundary[1]}`,
@@ -375,31 +337,11 @@ function loadGridsInPolyline() {
     video_height: Math.ceil(targetViewer.camera.positionCartographic.height),
   };
 
-  let position = Cesium.SceneTransforms.wgs84ToWindowCoordinates(
-    targetViewer.scene,
-    activeShapePoints[activeShapePoints.length - 1]
-  );
-
-  let level = getLevelForHeight(targetViewer);
-
-  bus.$emit("endDraw", {
-    x: position.x,
-    y: position.y,
-    lngs: params.lngs,
-    lats: params.lats,
-    level: level,
-  });
-
   server.getPolygonGrids(params).then((response) => {
     if (response.server_status != 200) return;
 
     let gridsData = response.geo_num_list;
-    let rgba = {
-      red: 77 / 255,
-      green: 149 / 255,
-      blue: 240 / 255,
-      alpha: 0.8,
-    };
+    let rgba = [77 / 255, 149 / 255, 240 / 255, 200 / 255];
 
     draw2dOutlineGridsPrimitives(gridsData, rectanglePrimitives, rgba);
   });

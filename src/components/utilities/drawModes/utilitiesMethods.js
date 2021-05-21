@@ -26,17 +26,15 @@ export function cartesian3_to_degrees(targetViewer, cartesian3) {
  * */
 export function draw2dOutlineGridsPrimitives(grids, gridsPrimitives, rgba) {
   let linesGeometries = grids.map((grid) => {
-    let boundary = [grid.lbLng, grid.lbLat, grid.rtLng, grid.rtLat];
-
     let instanceLineGeometry = new Cesium.GeometryInstance({
-      geometry: drawOne2dRectangleOutlineGeometry(boundary),
+      geometry: drawOne2dRectangleOutlineGeometry([
+        grid.lbLng,
+        grid.lbLat,
+        grid.rtLng,
+        grid.rtLat,
+      ]),
       attributes: {
-        color: new Cesium.ColorGeometryInstanceAttribute(
-          rgba.red,
-          rgba.green,
-          rgba.blue,
-          rgba.alpha
-        ),
+        color: new Cesium.ColorGeometryInstanceAttribute(...rgba),
       },
     });
 
@@ -76,18 +74,3 @@ function addGeometries(gridsPrimitives, geometries) {
   );
 }
 
-export function getLevelForHeight(targetViewer) {
-  let tilesToRender = targetViewer.scene.globe._surface._tilesToRender;
-
-  if (tilesToRender.length > 0) {
-    let level = tilesToRender[0].level + 5;
-
-    if (level < 6) {
-      level = 6;
-    }
-
-    return level;
-  }
-
-  return 6;
-}
